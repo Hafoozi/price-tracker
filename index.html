@@ -26,340 +26,135 @@
       --radius:    12px;
     }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-body);
-      min-height: 100vh;
-      padding: 0;
-    }
+    body { background: var(--bg); color: var(--text); font-family: var(--font-body); min-height: 100vh; }
 
     /* ── Header ── */
     header {
-      padding: 28px 32px 20px;
+      padding: 20px 32px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
-      position: sticky;
-      top: 0;
-      background: var(--bg);
-      z-index: 100;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+      position: sticky; top: 0; background: var(--bg); z-index: 100;
     }
-
-    .header-left h1 {
-      font-size: 1.3rem;
-      font-weight: 600;
-      letter-spacing: -0.3px;
-    }
-
+    .header-left h1 { font-size: 1.2rem; font-weight: 600; }
     .header-left h1 span { color: var(--accent); }
+    .header-meta { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); margin-top: 3px; }
+    .header-right { display: flex; align-items: center; gap: 8px; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .status-text { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); }
+    .btn { padding: 7px 14px; border-radius: 8px; font-size: 0.8rem; cursor: pointer; font-family: var(--font-body); border: 1px solid var(--border); transition: all 0.15s; }
+    .btn-secondary { background: var(--surface2); color: var(--text); }
+    .btn-secondary:hover { background: var(--surface); border-color: var(--accent); }
+    .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+    .btn-primary:hover { background: #3a7ae0; }
+    .btn-danger { background: rgba(247,92,92,0.15); color: var(--red); border-color: rgba(247,92,92,0.3); }
+    .btn-danger:hover { background: rgba(247,92,92,0.25); }
 
-    .header-meta {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      margin-top: 3px;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .status-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--green);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
-    }
-
-    .status-text {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-family: var(--font-mono);
-    }
-
-    .btn-refresh {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 7px 14px;
-      border-radius: 8px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      font-family: var(--font-body);
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .btn-refresh:hover { background: var(--surface); border-color: var(--accent); }
-
-    /* ── Main Layout ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 32px 24px;
-    }
-
-    /* ── Loading / Error ── */
-    #loading, #error-state {
-      text-align: center;
-      padding: 80px 20px;
-      color: var(--muted);
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-    }
-
+    /* ── Main ── */
+    main { max-width: 1100px; margin: 0 auto; padding: 28px 24px; }
+    #loading, #error-state { text-align: center; padding: 80px 20px; color: var(--muted); font-family: var(--font-mono); font-size: 0.85rem; }
     #error-state { color: var(--red); }
 
     /* ── Product Cards ── */
-    .products-grid {
-      display: grid;
-      gap: 24px;
-    }
-
-    .product-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-      animation: fadeUp 0.4s ease both;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    .products-grid { display: grid; gap: 24px; }
+    .product-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; animation: fadeUp 0.4s ease both; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
     .card-header {
-      padding: 20px 24px 16px;
+      padding: 20px 24px;
       border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+      display: flex; align-items: center; gap: 16px;
     }
-
-    .product-name {
-      font-size: 1rem;
-      font-weight: 600;
-      letter-spacing: -0.2px;
+    .product-image {
+      width: 72px; height: 72px; border-radius: 8px; object-fit: cover;
+      background: var(--surface2); flex-shrink: 0; border: 1px solid var(--border);
     }
-
-    .best-price-badge {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-end;
+    .product-image-placeholder {
+      width: 72px; height: 72px; border-radius: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--muted); font-size: 1.4rem; flex-shrink: 0;
     }
+    .card-header-info { flex: 1; min-width: 0; }
+    .product-name { font-size: 1rem; font-weight: 600; letter-spacing: -0.2px; margin-bottom: 4px; }
+    .product-retailer-count { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); }
+    .card-header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .best-price-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+    .best-price-value { font-size: 1.5rem; font-weight: 600; font-family: var(--font-mono); color: var(--green); line-height: 1; }
+    .card-actions { display: flex; gap: 6px; }
+    .btn-icon { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); color: var(--muted); font-size: 0.8rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .btn-icon:hover { border-color: var(--accent); color: var(--text); }
+    .btn-icon.danger:hover { border-color: var(--red); color: var(--red); background: rgba(247,92,92,0.1); }
 
-    .best-price-label {
-      font-size: 0.65rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 2px;
-    }
-
-    .best-price-value {
-      font-size: 1.6rem;
-      font-weight: 600;
-      font-family: var(--font-mono);
-      color: var(--green);
-      line-height: 1;
-    }
-
-    /* ── Retailer List ── */
-    .retailers {
-      padding: 16px 24px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .retailer-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: var(--surface2);
-      transition: background 0.15s;
-    }
-
-    .retailer-row:hover { background: var(--border); }
-
+    /* ── Retailers ── */
+    .retailers { padding: 12px 24px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+    .retailer-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-radius: 8px; background: var(--surface2); }
     .retailer-row.is-best { border-left: 3px solid var(--green); }
     .retailer-row.is-failed { opacity: 0.5; }
-
-    .retailer-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .retailer-name {
-      font-size: 0.85rem;
-      color: var(--text);
-    }
-
-    .retailer-name a {
-      color: inherit;
-      text-decoration: none;
-    }
-
+    .retailer-info { display: flex; align-items: center; gap: 8px; }
+    .retailer-name a { color: var(--text); text-decoration: none; font-size: 0.85rem; }
     .retailer-name a:hover { color: var(--accent); }
-
-    .tag-best {
-      font-size: 0.6rem;
-      background: rgba(52, 217, 139, 0.15);
-      color: var(--green);
-      border: 1px solid rgba(52, 217, 139, 0.3);
-      padding: 2px 7px;
-      border-radius: 20px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .tag-failed {
-      font-size: 0.6rem;
-      background: rgba(247, 92, 92, 0.15);
-      color: var(--red);
-      border: 1px solid rgba(247, 92, 92, 0.3);
-      padding: 2px 7px;
-      border-radius: 20px;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .retailer-price {
-      font-family: var(--font-mono);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
+    .tag { font-size: 0.6rem; padding: 2px 7px; border-radius: 20px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.5px; }
+    .tag-best { background: rgba(52,217,139,0.15); color: var(--green); border: 1px solid rgba(52,217,139,0.3); }
+    .tag-failed { background: rgba(247,92,92,0.15); color: var(--red); border: 1px solid rgba(247,92,92,0.3); }
+    .retailer-price { font-family: var(--font-mono); font-size: 0.88rem; font-weight: 500; }
     .retailer-price.is-best { color: var(--green); }
-    .retailer-price.is-unavailable { color: var(--muted); font-style: italic; }
+    .retailer-price.is-unavailable { color: var(--muted); font-style: italic; font-size: 0.78rem; }
 
-    /* ── Graph Section ── */
-    .graph-section {
-      padding: 20px 24px 24px;
-    }
+    /* ── Add Retailer ── */
+    .add-retailer-row { padding: 10px 24px 16px; }
+    .add-retailer-form { display: none; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+    .add-retailer-form.open { display: flex; }
+    .add-retailer-form input { flex: 1; min-width: 140px; padding: 7px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.82rem; font-family: var(--font-body); outline: none; }
+    .add-retailer-form input:focus { border-color: var(--accent); }
+    .btn-add-retailer { font-size: 0.75rem; color: var(--muted); background: none; border: 1px dashed var(--border); border-radius: 8px; padding: 6px 12px; cursor: pointer; transition: all 0.15s; }
+    .btn-add-retailer:hover { border-color: var(--accent); color: var(--accent); }
 
-    .graph-controls {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .graph-title {
-      font-size: 0.75rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    .timeframe-btns {
-      display: flex;
-      gap: 4px;
-    }
-
-    .tf-btn {
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: transparent;
-      color: var(--muted);
-      font-size: 0.72rem;
-      cursor: pointer;
-      font-family: var(--font-mono);
-      transition: all 0.15s;
-    }
-
+    /* ── Graph ── */
+    .graph-section { padding: 16px 24px 20px; }
+    .graph-controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .graph-title { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .timeframe-btns { display: flex; gap: 4px; }
+    .tf-btn { padding: 4px 10px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--muted); font-size: 0.7rem; cursor: pointer; font-family: var(--font-mono); transition: all 0.15s; }
     .tf-btn:hover { border-color: var(--accent); color: var(--text); }
     .tf-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
-
-    .graph-wrap {
-      position: relative;
-      height: 160px;
-    }
-
-    canvas {
-      width: 100% !important;
-    }
+    .graph-wrap { position: relative; height: 150px; }
+    canvas { width: 100% !important; }
+    .no-data { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 0.78rem; font-family: var(--font-mono); }
 
     /* ── Tooltip ── */
-    .chart-tooltip {
-      position: fixed;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 0.78rem;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.15s;
-      z-index: 1000;
-      min-width: 160px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-    }
-
+    .chart-tooltip { position: fixed; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; font-size: 0.78rem; pointer-events: none; opacity: 0; transition: opacity 0.15s; z-index: 1000; min-width: 160px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
     .chart-tooltip.visible { opacity: 1; }
+    .tooltip-date { font-family: var(--font-mono); font-size: 0.68rem; color: var(--muted); margin-bottom: 6px; }
+    .tooltip-price { font-family: var(--font-mono); font-size: 1rem; font-weight: 500; color: var(--green); margin-bottom: 4px; }
+    .tooltip-retailers { font-size: 0.7rem; color: var(--muted); line-height: 1.5; }
 
-    .tooltip-date {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
+    /* ── Add Bucket Modal ── */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px; width: 100%; max-width: 480px; }
+    .modal h2 { font-size: 1rem; margin-bottom: 20px; }
+    .modal label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 5px; margin-top: 14px; }
+    .modal input { width: 100%; padding: 9px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-size: 0.85rem; font-family: var(--font-body); outline: none; }
+    .modal input:focus { border-color: var(--accent); }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
 
-    .tooltip-price {
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      font-weight: 500;
-      color: var(--green);
-      margin-bottom: 4px;
-    }
+    /* ── Confirm Modal ── */
+    .confirm-modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; width: 100%; max-width: 380px; }
+    .confirm-modal p { font-size: 0.88rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+    .confirm-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
-    .tooltip-retailers {
-      font-size: 0.72rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    /* ── No Data ── */
-    .no-data {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100%;
-      color: var(--muted);
-      font-size: 0.8rem;
-      font-family: var(--font-mono);
-    }
+    /* ── Saving indicator ── */
+    .saving-toast { position: fixed; bottom: 20px; right: 20px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px; font-size: 0.8rem; font-family: var(--font-mono); color: var(--muted); opacity: 0; transition: opacity 0.2s; z-index: 300; }
+    .saving-toast.visible { opacity: 1; }
 
     /* ── Responsive ── */
     @media (max-width: 600px) {
-      header { padding: 16px; }
+      header { padding: 14px 16px; }
       main { padding: 16px; }
-      .card-header { flex-direction: column; align-items: flex-start; }
-      .best-price-badge { align-items: flex-start; }
-      .best-price-value { font-size: 1.3rem; }
-      .graph-wrap { height: 130px; }
+      .card-header { flex-wrap: wrap; }
+      .best-price-value { font-size: 1.2rem; }
+      .graph-wrap { height: 120px; }
     }
   </style>
 </head>
@@ -368,12 +163,13 @@
 <header>
   <div class="header-left">
     <h1>Price <span>Tracker</span></h1>
-    <div class="header-meta" id="last-updated">Loading data...</div>
+    <div class="header-meta" id="last-updated">Loading...</div>
   </div>
   <div class="header-right">
     <div class="status-dot"></div>
     <span class="status-text">Live</span>
-    <button class="btn-refresh" onclick="loadData()">↻ Refresh</button>
+    <button class="btn btn-secondary" onclick="loadData()">↻ Refresh</button>
+    <button class="btn btn-primary" onclick="openAddBucket()">+ Add Product</button>
   </div>
 </header>
 
@@ -383,43 +179,91 @@
   <div id="products-grid" class="products-grid" style="display:none"></div>
 </main>
 
+<!-- Add Bucket Modal -->
+<div class="modal-overlay" id="add-bucket-modal">
+  <div class="modal">
+    <h2>Add New Product</h2>
+    <label>Product Name (e.g. "Breville Barista Express")</label>
+    <input id="new-bucket-label" type="text" placeholder="Product name" />
+    <label>First Retailer Name (e.g. "Amazon")</label>
+    <input id="new-retailer-name" type="text" placeholder="Retailer name" />
+    <label>Product URL</label>
+    <input id="new-retailer-url" type="url" placeholder="https://..." />
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeAddBucket()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmAddBucket()">Add Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="confirm-modal">
+    <h2 id="confirm-title">Are you sure?</h2>
+    <p id="confirm-message"></p>
+    <div class="confirm-modal-actions">
+      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
+      <button class="btn btn-danger" id="confirm-action-btn">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div class="chart-tooltip" id="tooltip"></div>
+<div class="saving-toast" id="saving-toast">Saving to GitHub...</div>
 
 <script>
-// ── Config ──────────────────────────────────────────────────────────────────
-const CSV_URL = "https://raw.githubusercontent.com/Hafoozi/price-tracker/main/price_history.csv";
+// ── Config ────────────────────────────────────────────────────────────────────
+const GITHUB_USER   = "Hafoozi";
+const GITHUB_REPO   = "price-tracker";
+const GITHUB_BRANCH = "main";
+const CSV_URL       = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/price_history.csv`;
+const CONFIG_URL    = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/config.json`;
+const API_BASE      = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}`;
 
-// Product categories — maps display name to the retailer name prefixes in CSV
-const PRODUCTS = [
-  { label: "Turin DF83 Gen 2 Grinder",    prefix: "Turin DF83 Grinder" },
-  { label: "Lelit Bianca Espresso Machine", prefix: "Lelit Bianca" },
-  { label: "Brake Free Tail Light",         prefix: "Brake Free Light" },
-];
+// GitHub token — stored in localStorage so user only enters it once
+let GH_TOKEN = localStorage.getItem("gh_token") || "";
 
-// ── State ────────────────────────────────────────────────────────────────────
-let allRows = [];
-let charts  = {};
+// ── State ─────────────────────────────────────────────────────────────────────
+let allRows  = [];
+let config   = null;
+let charts   = {};
+let confirmCallback = null;
 
-// ── Data Loading ─────────────────────────────────────────────────────────────
+// ── Token Management ──────────────────────────────────────────────────────────
+function getToken() {
+  if (!GH_TOKEN) {
+    GH_TOKEN = prompt("Enter your GitHub Personal Access Token to enable editing:");
+    if (GH_TOKEN) localStorage.setItem("gh_token", GH_TOKEN);
+  }
+  return GH_TOKEN;
+}
+
+// ── Data Loading ──────────────────────────────────────────────────────────────
 async function loadData() {
   document.getElementById("loading").style.display = "block";
   document.getElementById("error-state").style.display = "none";
   document.getElementById("products-grid").style.display = "none";
 
   try {
-    const res = await fetch(CSV_URL + "?t=" + Date.now());
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const text = await res.text();
+    const [csvRes, cfgRes] = await Promise.all([
+      fetch(CSV_URL + "?t=" + Date.now()),
+      fetch(CONFIG_URL + "?t=" + Date.now()),
+    ]);
 
-    const parsed = Papa.parse(text, { header: true, skipEmptyLines: true });
+    if (!csvRes.ok) throw new Error(`CSV fetch failed: HTTP ${csvRes.status}`);
+    if (!cfgRes.ok) throw new Error(`Config fetch failed: HTTP ${cfgRes.status}`);
+
+    const csvText = await csvRes.text();
+    config        = await cfgRes.json();
+
+    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
     allRows = parsed.data.map(r => ({
       timestamp: new Date(r.timestamp),
       name:      r.name.trim(),
       price:     parseFloat(r.price),
       url:       r.url.trim(),
+      image:     (r.image || "").trim(),
     })).filter(r => !isNaN(r.price));
-
-    if (allRows.length === 0) throw new Error("No data found in CSV");
 
     const lastTs = new Date(Math.max(...allRows.map(r => r.timestamp)));
     document.getElementById("last-updated").textContent =
@@ -430,123 +274,289 @@ async function loadData() {
     document.getElementById("loading").style.display = "none";
     const el = document.getElementById("error-state");
     el.style.display = "block";
-    el.textContent = "⚠ Could not load price data: " + e.message;
+    el.textContent = "⚠ Could not load data: " + e.message;
   }
 }
 
-// ── Render Dashboard ─────────────────────────────────────────────────────────
+// ── Render Dashboard ──────────────────────────────────────────────────────────
 function renderDashboard() {
   const grid = document.getElementById("products-grid");
   grid.innerHTML = "";
-
-  // Destroy old charts
-  Object.values(charts).forEach(c => c.destroy && c.destroy());
+  Object.values(charts).forEach(c => c && c.destroy && c.destroy());
   charts = {};
 
-  PRODUCTS.forEach((product, idx) => {
-    const retailers = getRetailers(product.prefix);
-    const card = buildCard(product, retailers, idx);
+  config.buckets.forEach((bucket, idx) => {
+    const card = buildCard(bucket, idx);
     grid.appendChild(card);
   });
 
   document.getElementById("loading").style.display = "none";
   grid.style.display = "grid";
 
-  // Draw charts after DOM is ready
-  PRODUCTS.forEach((product, idx) => {
-    drawChart(product, idx, "all");
+  config.buckets.forEach((bucket, idx) => drawChart(bucket, idx, "all"));
+}
+
+// ── Get Retailer Data ─────────────────────────────────────────────────────────
+function getRetailerData(bucket) {
+  return bucket.retailers.map(r => {
+    const name  = `${bucket.label} - ${r.name}`;
+    const rows  = allRows.filter(row => row.name === name);
+    const latest = rows.length ? rows.reduce((a, b) => a.timestamp > b.timestamp ? a : b) : null;
+    return {
+      name:   r.name,
+      url:    r.url,
+      price:  latest?.price ?? null,
+      image:  latest?.image ?? "",
+      failed: !latest,
+    };
   });
 }
 
-// ── Get Retailers for a Product ───────────────────────────────────────────────
-function getRetailers(prefix) {
-  const names = [...new Set(allRows.filter(r => r.name.startsWith(prefix)).map(r => r.name))];
-  return names.map(name => {
-    const rows   = allRows.filter(r => r.name === name);
-    const latest = rows.reduce((a, b) => a.timestamp > b.timestamp ? a : b, rows[0]);
-    return { name, price: latest?.price ?? null, url: latest?.url ?? "#", failed: !latest };
-  });
-}
-
-// ── Build Card HTML ───────────────────────────────────────────────────────────
-function buildCard(product, retailers, idx) {
+// ── Build Card ────────────────────────────────────────────────────────────────
+function buildCard(bucket, idx) {
+  const retailers = getRetailerData(bucket);
   const prices    = retailers.filter(r => r.price !== null).map(r => r.price);
   const bestPrice = prices.length ? Math.min(...prices) : null;
 
+  // Get best image from any retailer
+  const image = retailers.find(r => r.image)?.image || "";
+
   const card = document.createElement("div");
   card.className = "product-card";
-  card.style.animationDelay = (idx * 0.08) + "s";
+  card.style.animationDelay = (idx * 0.07) + "s";
+  card.dataset.idx = idx;
 
-  // Header
+  // ── Header ──
+  const imgEl = image
+    ? `<img class="product-image" src="${image}" alt="${bucket.label}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" /><div class="product-image-placeholder" style="display:none">🛍</div>`
+    : `<div class="product-image-placeholder">🛍</div>`;
+
   const header = document.createElement("div");
   header.className = "card-header";
   header.innerHTML = `
-    <div class="product-name">${product.label}</div>
-    <div class="best-price-badge">
-      <div class="best-price-label">Lowest Price</div>
-      <div class="best-price-value">${bestPrice !== null ? "$" + bestPrice.toFixed(2) : "—"}</div>
+    ${imgEl}
+    <div class="card-header-info">
+      <div class="product-name">${bucket.label}</div>
+      <div class="product-retailer-count">${retailers.length} retailer${retailers.length !== 1 ? "s" : ""} tracked</div>
+    </div>
+    <div class="card-header-right">
+      <div>
+        <div class="best-price-label">Lowest Price</div>
+        <div class="best-price-value">${bestPrice !== null ? "$" + bestPrice.toFixed(2) : "—"}</div>
+      </div>
+      <div class="card-actions">
+        <button class="btn-icon" title="Move up" onclick="moveBucket(${idx}, -1)">↑</button>
+        <button class="btn-icon" title="Move down" onclick="moveBucket(${idx}, 1)">↓</button>
+        <button class="btn-icon danger" title="Delete product" onclick="deleteBucket(${idx})">✕</button>
+      </div>
     </div>
   `;
 
-  // Retailers
+  // ── Retailers ──
   const retailersEl = document.createElement("div");
   retailersEl.className = "retailers";
 
-  retailers.forEach(r => {
-    const isBest   = r.price !== null && r.price === bestPrice;
-    const shortName = r.name.split(" - ")[1] || r.name;
-
-    const row = document.createElement("div");
+  retailers.forEach((r, rIdx) => {
+    const isBest = r.price !== null && r.price === bestPrice;
+    const row    = document.createElement("div");
     row.className = "retailer-row" + (isBest ? " is-best" : "") + (r.failed ? " is-failed" : "");
     row.innerHTML = `
       <div class="retailer-info">
-        <div class="retailer-name"><a href="${r.url}" target="_blank">${shortName}</a></div>
-        ${isBest   ? '<span class="tag-best">Best</span>'     : ""}
-        ${r.failed ? '<span class="tag-failed">No Data</span>' : ""}
+        <div class="retailer-name"><a href="${r.url}" target="_blank">${r.name}</a></div>
+        ${isBest   ? '<span class="tag tag-best">Best</span>'     : ""}
+        ${r.failed ? '<span class="tag tag-failed">No Data</span>' : ""}
       </div>
-      <div class="retailer-price ${isBest ? "is-best" : ""} ${r.price === null ? "is-unavailable" : ""}">
-        ${r.price !== null ? "$" + r.price.toFixed(2) : "unavailable"}
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="retailer-price ${isBest ? "is-best" : ""} ${r.price === null ? "is-unavailable" : ""}">
+          ${r.price !== null ? "$" + r.price.toFixed(2) : "unavailable"}
+        </div>
+        <button class="btn-icon danger" title="Remove retailer" onclick="deleteRetailer(${idx}, ${rIdx})" style="width:22px;height:22px;font-size:0.65rem">✕</button>
       </div>
     `;
     retailersEl.appendChild(row);
   });
 
-  // Graph section
+  // ── Add Retailer ──
+  const addRow = document.createElement("div");
+  addRow.className = "add-retailer-row";
+  addRow.innerHTML = `
+    <button class="btn-add-retailer" onclick="toggleAddRetailer(this)">+ Add retailer</button>
+    <div class="add-retailer-form">
+      <input type="text"  placeholder="Retailer name" class="retailer-name-input" />
+      <input type="url"   placeholder="Product URL"   class="retailer-url-input" />
+      <button class="btn btn-primary" style="font-size:0.78rem;padding:6px 12px" onclick="confirmAddRetailer(this, ${idx})">Add</button>
+      <button class="btn btn-secondary" style="font-size:0.78rem;padding:6px 12px" onclick="toggleAddRetailer(this.parentElement.previousElementSibling)">Cancel</button>
+    </div>
+  `;
+
+  // ── Graph ──
   const graphSection = document.createElement("div");
   graphSection.className = "graph-section";
   graphSection.innerHTML = `
     <div class="graph-controls">
       <div class="graph-title">Price History — Lowest Daily Price</div>
       <div class="timeframe-btns">
-        <button class="tf-btn active" onclick="changeTimeframe(this, '${product.prefix}', ${idx}, 'all')">All</button>
-        <button class="tf-btn" onclick="changeTimeframe(this, '${product.prefix}', ${idx}, '30d')">30D</button>
-        <button class="tf-btn" onclick="changeTimeframe(this, '${product.prefix}', ${idx}, '14d')">14D</button>
-        <button class="tf-btn" onclick="changeTimeframe(this, '${product.prefix}', ${idx}, '7d')">7D</button>
+        <button class="tf-btn active" onclick="changeTimeframe(this, ${idx}, 'all')">All</button>
+        <button class="tf-btn" onclick="changeTimeframe(this, ${idx}, '30d')">30D</button>
+        <button class="tf-btn" onclick="changeTimeframe(this, ${idx}, '14d')">14D</button>
+        <button class="tf-btn" onclick="changeTimeframe(this, ${idx}, '7d')">7D</button>
       </div>
     </div>
-    <div class="graph-wrap">
-      <canvas id="chart-${idx}"></canvas>
-    </div>
+    <div class="graph-wrap"><canvas id="chart-${idx}"></canvas></div>
   `;
 
   card.appendChild(header);
   card.appendChild(retailersEl);
+  card.appendChild(addRow);
   card.appendChild(graphSection);
   return card;
 }
 
-// ── Chart Drawing ─────────────────────────────────────────────────────────────
-function getChartData(prefix, timeframe) {
-  const rows = allRows.filter(r => r.name.startsWith(prefix));
+// ── Add/Remove/Reorder ────────────────────────────────────────────────────────
+function openAddBucket() {
+  document.getElementById("add-bucket-modal").classList.add("open");
+  document.getElementById("new-bucket-label").focus();
+}
+function closeAddBucket() {
+  document.getElementById("add-bucket-modal").classList.remove("open");
+  ["new-bucket-label","new-retailer-name","new-retailer-url"].forEach(id => document.getElementById(id).value = "");
+}
+
+async function confirmAddBucket() {
+  const label  = document.getElementById("new-bucket-label").value.trim();
+  const rName  = document.getElementById("new-retailer-name").value.trim();
+  const rUrl   = document.getElementById("new-retailer-url").value.trim();
+  if (!label || !rName || !rUrl) { alert("Please fill in all fields."); return; }
+  config.buckets.push({ label, retailers: [{ name: rName, url: rUrl }] });
+  closeAddBucket();
+  await saveConfig("Add product: " + label);
+}
+
+function toggleAddRetailer(btn) {
+  const form = btn.nextElementSibling || btn.parentElement.querySelector(".add-retailer-form");
+  if (form) form.classList.toggle("open");
+}
+
+async function confirmAddRetailer(btn, bucketIdx) {
+  const form  = btn.closest(".add-retailer-form");
+  const rName = form.querySelector(".retailer-name-input").value.trim();
+  const rUrl  = form.querySelector(".retailer-url-input").value.trim();
+  if (!rName || !rUrl) { alert("Please enter a retailer name and URL."); return; }
+  config.buckets[bucketIdx].retailers.push({ name: rName, url: rUrl });
+  await saveConfig(`Add retailer ${rName} to ${config.buckets[bucketIdx].label}`);
+}
+
+function deleteBucket(idx) {
+  showConfirm(
+    "Delete Product?",
+    `This will remove "${config.buckets[idx].label}" and all its retailers from tracking. Historical data is kept.`,
+    async () => {
+      config.buckets.splice(idx, 1);
+      await saveConfig("Delete bucket: " + idx);
+    }
+  );
+}
+
+function deleteRetailer(bucketIdx, retailerIdx) {
+  const r = config.buckets[bucketIdx].retailers[retailerIdx];
+  showConfirm(
+    "Remove Retailer?",
+    `Remove "${r.name}" from "${config.buckets[bucketIdx].label}"?`,
+    async () => {
+      config.buckets[bucketIdx].retailers.splice(retailerIdx, 1);
+      await saveConfig(`Remove retailer ${r.name}`);
+    }
+  );
+}
+
+async function moveBucket(idx, direction) {
+  const newIdx = idx + direction;
+  if (newIdx < 0 || newIdx >= config.buckets.length) return;
+  const temp = config.buckets[idx];
+  config.buckets[idx]    = config.buckets[newIdx];
+  config.buckets[newIdx] = temp;
+  await saveConfig("Reorder buckets");
+}
+
+// ── GitHub Writeback ──────────────────────────────────────────────────────────
+async function saveConfig(commitMessage) {
+  const token = getToken();
+  if (!token) { alert("GitHub token required to save changes."); return; }
+
+  showToast("Saving to GitHub...");
+
+  try {
+    // Get current file SHA
+    const shaRes = await fetch(`${API_BASE}/contents/config.json`, {
+      headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" }
+    });
+    const shaData = await shaRes.json();
+    const sha     = shaData.sha;
+
+    // Build clean config for GitHub (no credentials)
+    const ghConfig = {
+      email: { sender_email: "", app_password: "", recipient_email: "" },
+      buckets: config.buckets,
+    };
+
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(ghConfig, null, 2))));
+
+    const res = await fetch(`${API_BASE}/contents/config.json`, {
+      method: "PUT",
+      headers: {
+        Authorization: `token ${token}`,
+        Accept: "application/vnd.github.v3+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message: commitMessage, content, sha, branch: GITHUB_BRANCH }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.message || "GitHub API error");
+    }
+
+    showToast("Saved ✓");
+    setTimeout(() => renderDashboard(), 500);
+  } catch (e) {
+    showToast("Error: " + e.message);
+    console.error(e);
+  }
+}
+
+// ── Confirm Modal ─────────────────────────────────────────────────────────────
+function showConfirm(title, message, callback) {
+  document.getElementById("confirm-title").textContent   = title;
+  document.getElementById("confirm-message").textContent = message;
+  confirmCallback = callback;
+  document.getElementById("confirm-modal").classList.add("open");
+}
+function closeConfirm() {
+  document.getElementById("confirm-modal").classList.remove("open");
+  confirmCallback = null;
+}
+document.getElementById("confirm-action-btn").onclick = async () => {
+  closeConfirm();
+  if (confirmCallback) await confirmCallback();
+};
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById("saving-toast");
+  t.textContent = msg;
+  t.classList.add("visible");
+  setTimeout(() => t.classList.remove("visible"), 2500);
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+function getChartData(bucket, timeframe) {
+  const rows = allRows.filter(r => bucket.retailers.some(ret => r.name === `${bucket.label} - ${ret.name}`));
   if (!rows.length) return { labels: [], prices: [], retailers: [] };
 
-  // Filter by timeframe
-  const now    = new Date();
   const days   = timeframe === "7d" ? 7 : timeframe === "14d" ? 14 : timeframe === "30d" ? 30 : null;
-  const cutoff = days ? new Date(now - days * 86400000) : null;
+  const cutoff = days ? new Date(Date.now() - days * 86400000) : null;
   const filtered = cutoff ? rows.filter(r => r.timestamp >= cutoff) : rows;
 
-  // Group by date — lowest price per day with which retailers matched
   const byDate = {};
   filtered.forEach(r => {
     const date = r.timestamp.toISOString().slice(0, 10);
@@ -554,131 +564,103 @@ function getChartData(prefix, timeframe) {
     byDate[date].push(r);
   });
 
-  const labels   = [];
-  const prices   = [];
-  const retailers = [];
-
+  const labels = [], prices = [], retailers = [];
   Object.keys(byDate).sort().forEach(date => {
     const dayRows  = byDate[date];
     const minPrice = Math.min(...dayRows.map(r => r.price));
-    const winners  = dayRows.filter(r => r.price === minPrice).map(r => r.name.split(" - ")[1] || r.name);
+    const winners  = [...new Set(dayRows.filter(r => r.price === minPrice).map(r => r.name.split(" - ")[1] || r.name))];
     labels.push(date);
     prices.push(minPrice);
-    retailers.push({ price: minPrice, names: [...new Set(winners)] });
+    retailers.push({ price: minPrice, names: winners });
   });
 
   return { labels, prices, retailers };
 }
 
-function drawChart(product, idx, timeframe) {
-  const { labels, prices, retailers } = getChartData(product.prefix, timeframe);
+function drawChart(bucket, idx, timeframe) {
+  const { labels, prices, retailers } = getChartData(bucket, timeframe);
   const canvas = document.getElementById("chart-" + idx);
   if (!canvas) return;
 
-  const ctx    = canvas.getContext("2d");
+  const ctx     = canvas.getContext("2d");
   const tooltip = document.getElementById("tooltip");
 
-  if (charts[idx]) { charts[idx].destroy(); delete charts[idx]; }
+  if (charts[idx]) { try { charts[idx].destroy(); } catch(e){} delete charts[idx]; }
 
+  const wrap = canvas.parentElement;
   if (!labels.length) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    const wrap = canvas.parentElement;
-    wrap.innerHTML = '<div class="no-data">No data available for this timeframe</div>';
+    wrap.innerHTML = '<div class="no-data">No data for this timeframe</div>';
     return;
   }
 
-  // Manual canvas chart (no Chart.js dependency)
-  const dpr    = window.devicePixelRatio || 1;
-  const wrap   = canvas.parentElement;
-  const W      = wrap.clientWidth;
-  const H      = wrap.clientHeight || 160;
+  const dpr = window.devicePixelRatio || 1;
+  const W   = wrap.clientWidth;
+  const H   = wrap.clientHeight || 150;
   canvas.width  = W * dpr;
   canvas.height = H * dpr;
   ctx.scale(dpr, dpr);
 
-  const pad   = { top: 12, right: 16, bottom: 32, left: 56 };
+  const pad   = { top: 10, right: 14, bottom: 28, left: 52 };
   const cW    = W - pad.left - pad.right;
   const cH    = H - pad.top - pad.bottom;
-  const minP  = Math.min(...prices) * 0.98;
-  const maxP  = Math.max(...prices) * 1.02;
+  const minP  = Math.min(...prices) * 0.985;
+  const maxP  = Math.max(...prices) * 1.015;
   const range = maxP - minP || 1;
 
-  const xPos = i => pad.left + (i / (labels.length - 1 || 1)) * cW;
-  const yPos = p => pad.top + cH - ((p - minP) / range) * cH;
+  const xPos = i  => pad.left + (labels.length > 1 ? (i / (labels.length - 1)) * cW : cW / 2);
+  const yPos = p  => pad.top  + cH - ((p - minP) / range) * cH;
 
-  // Grid lines
-  ctx.strokeStyle = "#2e3347";
-  ctx.lineWidth   = 1;
-  [0, 0.25, 0.5, 0.75, 1].forEach(t => {
+  // Grid
+  ctx.strokeStyle = "#2e3347"; ctx.lineWidth = 1;
+  [0, 0.33, 0.66, 1].forEach(t => {
     const y = pad.top + t * cH;
     ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
-    const val = maxP - t * range;
-    ctx.fillStyle = "#7b82a0";
-    ctx.font = `10px DM Mono, monospace`;
-    ctx.textAlign = "right";
-    ctx.fillText("$" + val.toFixed(0), pad.left - 6, y + 3.5);
+    ctx.fillStyle = "#7b82a0"; ctx.font = "9px DM Mono, monospace"; ctx.textAlign = "right";
+    ctx.fillText("$" + (maxP - t * range).toFixed(0), pad.left - 5, y + 3);
   });
 
-  // Area fill
+  // Area
   const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
-  grad.addColorStop(0, "rgba(79,142,247,0.25)");
+  grad.addColorStop(0, "rgba(79,142,247,0.22)");
   grad.addColorStop(1, "rgba(79,142,247,0)");
   ctx.beginPath();
   ctx.moveTo(xPos(0), yPos(prices[0]));
   prices.forEach((p, i) => { if (i > 0) ctx.lineTo(xPos(i), yPos(p)); });
   ctx.lineTo(xPos(prices.length - 1), pad.top + cH);
   ctx.lineTo(xPos(0), pad.top + cH);
-  ctx.closePath();
-  ctx.fillStyle = grad;
-  ctx.fill();
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
 
   // Line
-  ctx.beginPath();
-  ctx.strokeStyle = "#4f8ef7";
-  ctx.lineWidth   = 2;
-  ctx.lineJoin    = "round";
-  prices.forEach((p, i) => {
-    i === 0 ? ctx.moveTo(xPos(i), yPos(p)) : ctx.lineTo(xPos(i), yPos(p));
-  });
+  ctx.beginPath(); ctx.strokeStyle = "#4f8ef7"; ctx.lineWidth = 2; ctx.lineJoin = "round";
+  prices.forEach((p, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(p)) : ctx.lineTo(xPos(i), yPos(p)));
   ctx.stroke();
 
   // Dots
   prices.forEach((p, i) => {
-    ctx.beginPath();
-    ctx.arc(xPos(i), yPos(p), 3.5, 0, Math.PI * 2);
-    ctx.fillStyle = "#4f8ef7";
-    ctx.fill();
-    ctx.strokeStyle = "#0f1117";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    ctx.beginPath(); ctx.arc(xPos(i), yPos(p), 3, 0, Math.PI * 2);
+    ctx.fillStyle = "#4f8ef7"; ctx.fill();
+    ctx.strokeStyle = "#0f1117"; ctx.lineWidth = 1.5; ctx.stroke();
   });
 
-  // X-axis labels (show max 6)
-  ctx.fillStyle = "#7b82a0";
-  ctx.font = "10px DM Mono, monospace";
-  ctx.textAlign = "center";
-  const step = Math.ceil(labels.length / 6);
+  // X labels
+  ctx.fillStyle = "#7b82a0"; ctx.font = "9px DM Mono, monospace"; ctx.textAlign = "center";
+  const step = Math.ceil(labels.length / 5);
   labels.forEach((l, i) => {
     if (i % step === 0 || i === labels.length - 1) {
       const d = new Date(l + "T12:00:00");
-      const label = d.toLocaleDateString("en-US", { month:"short", day:"numeric" });
-      ctx.fillText(label, xPos(i), H - 8);
+      ctx.fillText(d.toLocaleDateString("en-US", { month:"short", day:"numeric" }), xPos(i), H - 6);
     }
   });
 
-  // Store chart data for tooltip
   charts[idx] = { labels, prices, retailers, xPos, yPos, pad, W, H, destroy: () => {} };
 
-  // Tooltip interaction
   canvas.onmousemove = (e) => {
     const rect   = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const chart  = charts[idx];
     if (!chart) return;
 
-    // Find nearest point
-    let nearest = 0;
-    let minDist = Infinity;
+    let nearest = 0, minDist = Infinity;
     chart.labels.forEach((_, i) => {
       const dist = Math.abs(chart.xPos(i) - mouseX);
       if (dist < minDist) { minDist = dist; nearest = i; }
@@ -694,52 +676,28 @@ function drawChart(product, idx, timeframe) {
       <div class="tooltip-retailers">Lowest at: ${r.names.join(", ")}</div>
     `;
     tooltip.classList.add("visible");
-
-    // Position tooltip
     const tx = e.clientX + 14;
-    const ty = e.clientY - 20;
-    tooltip.style.left = (tx + 180 > window.innerWidth ? e.clientX - 180 : tx) + "px";
-    tooltip.style.top  = ty + "px";
-
-    // Highlight dot
-    const c2  = charts[idx];
-    const dpr = window.devicePixelRatio || 1;
-    ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-    drawChart(product, idx, timeframe);
-    ctx.beginPath();
-    ctx.arc(c2.xPos(nearest), c2.yPos(c2.prices[nearest]), 6, 0, Math.PI * 2);
-    ctx.fillStyle = "#4f8ef7";
-    ctx.fill();
-    ctx.strokeStyle = "white";
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    tooltip.style.left = (tx + 180 > window.innerWidth ? e.clientX - 190 : tx) + "px";
+    tooltip.style.top  = (e.clientY - 20) + "px";
   };
-
-  canvas.onmouseleave = () => { tooltip.classList.remove("visible"); };
+  canvas.onmouseleave = () => tooltip.classList.remove("visible");
 }
 
-function changeTimeframe(btn, prefix, idx, tf) {
+function changeTimeframe(btn, idx, tf) {
   btn.closest(".timeframe-btns").querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
   btn.classList.add("active");
-
   const wrap = document.getElementById("chart-" + idx)?.parentElement;
-  if (wrap && !wrap.querySelector("canvas")) {
-    wrap.innerHTML = `<canvas id="chart-${idx}"></canvas>`;
-  }
-
-  const product = PRODUCTS[idx];
-  drawChart(product, idx, tf);
+  if (wrap && !wrap.querySelector("canvas")) wrap.innerHTML = `<canvas id="chart-${idx}"></canvas>`;
+  drawChart(config.buckets[idx], idx, tf);
 }
 
-// ── Init ─────────────────────────────────────────────────────────────────────
+// ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
 window.addEventListener("resize", () => {
-  PRODUCTS.forEach((p, i) => {
-    const activeTf = document.querySelector(`#chart-${i}`)
-      ?.closest(".graph-section")
-      ?.querySelector(".tf-btn.active")
-      ?.textContent.toLowerCase().replace("all", "all") || "all";
-    drawChart(p, i, activeTf === "all" ? "all" : activeTf);
+  if (!config) return;
+  config.buckets.forEach((b, i) => {
+    const tf = document.querySelector(`#chart-${i}`)?.closest(".graph-section")?.querySelector(".tf-btn.active")?.textContent.toLowerCase() || "all";
+    drawChart(b, i, tf === "all" ? "all" : tf);
   });
 });
 </script>
