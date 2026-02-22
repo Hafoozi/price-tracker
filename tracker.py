@@ -1,6 +1,7 @@
 """
 Price Tracker - Main Script
 Scrapes product prices and sends email alerts on price drops.
+Also sends a weekly Sunday summary at 6:30 PM Eastern.
 Credentials are read from environment variables (set via GitHub Secrets).
 """
 
@@ -12,7 +13,7 @@ import smtplib
 import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import re
 
@@ -23,13 +24,9 @@ PRICE_LOG   = os.path.join(os.path.dirname(__file__), "price_history.csv")
 def load_config():
     with open(CONFIG_FILE, "r") as f:
         config = json.load(f)
-
-    # Override email credentials with environment variables if present
-    # This is how GitHub Actions securely injects your secrets
     config["email"]["sender_email"]    = os.environ.get("SENDER_EMAIL",    config["email"].get("sender_email", ""))
     config["email"]["app_password"]    = os.environ.get("APP_PASSWORD",    config["email"].get("app_password", ""))
     config["email"]["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", config["email"].get("recipient_email", ""))
-
     return config
 
 # ── Price Extraction ───────────────────────────────────────────────────────────
@@ -43,7 +40,6 @@ HEADERS = {
 }
 
 def clean_price(raw: str) -> float | None:
-    """Strip currency symbols, commas, whitespace and return a float."""
     if not raw:
         return None
     cleaned = re.sub(r"[^\d.]", "", raw.replace(",", ""))
@@ -53,10 +49,6 @@ def clean_price(raw: str) -> float | None:
         return None
 
 def scrape_price(url: str, name: str) -> float | None:
-    """
-    Try several common Shopify / generic retail price selectors.
-    Returns the price as a float, or None if not found.
-    """
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
@@ -66,7 +58,6 @@ def scrape_price(url: str, name: str) -> float | None:
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    # Common selectors — ordered from most specific to most generic
     selectors = [
         {"name": "span", "class": re.compile(r"price", re.I)},
         {"name": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
@@ -83,7 +74,6 @@ def scrape_price(url: str, name: str) -> float | None:
                 print(f"  [OK] {name}: ${price:.2f}")
                 return price
 
-    # JSON-LD fallback (very reliable on Shopify)
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.string)
@@ -107,7 +97,6 @@ def scrape_price(url: str, name: str) -> float | None:
 # ── Price History (CSV) ────────────────────────────────────────────────────────
 
 def read_last_price(name: str) -> float | None:
-    """Return the most recent logged price for a product, or None."""
     if not os.path.exists(PRICE_LOG):
         return None
     with open(PRICE_LOG, "r", newline="") as f:
@@ -116,8 +105,20 @@ def read_last_price(name: str) -> float | None:
         return None
     return float(rows[-1]["price"])
 
+def read_price_7days_ago(name: str) -> float | None:
+    """Return the closest price recorded ~7 days ago, or None."""
+    if not os.path.exists(PRICE_LOG):
+        return None
+    cutoff = datetime.now() - timedelta(days=7)
+    with open(PRICE_LOG, "r", newline="") as f:
+        rows = [r for r in csv.DictReader(f) if r["name"] == name]
+    # Find rows from 7+ days ago, take the most recent one before the cutoff
+    past_rows = [r for r in rows if datetime.strptime(r["timestamp"], "%Y-%m-%d %H:%M:%S") <= cutoff]
+    if not past_rows:
+        return None
+    return float(past_rows[-1]["price"])
+
 def log_price(name: str, url: str, price: float):
-    """Append a price record to the CSV log."""
     file_exists = os.path.exists(PRICE_LOG)
     with open(PRICE_LOG, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["timestamp", "name", "price", "url"])
@@ -130,16 +131,29 @@ def log_price(name: str, url: str, price: float):
             "url": url,
         })
 
-# ── Email Alert ────────────────────────────────────────────────────────────────
+# ── Email Helpers ──────────────────────────────────────────────────────────────
+
+def send_email(config: dict, subject: str, html: str):
+    cfg = config["email"]
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = cfg["sender_email"]
+    msg["To"]      = cfg["recipient_email"]
+    msg.attach(MIMEText(html, "html"))
+    try:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(cfg["sender_email"], cfg["app_password"])
+            server.sendmail(cfg["sender_email"], cfg["recipient_email"], msg.as_string())
+        print(f"\n  [EMAIL] Sent to {cfg['recipient_email']}")
+    except Exception as e:
+        print(f"\n  [EMAIL ERROR] {e}")
+
+# ── Price Drop Alert ───────────────────────────────────────────────────────────
 
 def send_alert(config: dict, alerts: list[dict]):
-    """Send a single email summarising all price drops found this run."""
     if not alerts:
         return
-
-    cfg = config["email"]
     subject = f"🔔 Price Drop Alert — {len(alerts)} item(s) dropped!"
-
     rows = ""
     for a in alerts:
         rows += (
@@ -151,7 +165,6 @@ def send_alert(config: dict, alerts: list[dict]):
             f"<td style='padding:8px;border:1px solid #ddd'><a href='{a['url']}'>View Product</a></td>"
             f"</tr>"
         )
-
     html = f"""
     <html><body style='font-family:Arial,sans-serif;'>
     <h2 style='color:#2c3e50'>💰 Price Drop Alert</h2>
@@ -173,30 +186,81 @@ def send_alert(config: dict, alerts: list[dict]):
     </p>
     </body></html>
     """
+    send_email(config, subject, html)
 
-    msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"]    = cfg["sender_email"]
-    msg["To"]      = cfg["recipient_email"]
-    msg.attach(MIMEText(html, "html"))
+# ── Weekly Sunday Summary ──────────────────────────────────────────────────────
 
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(cfg["sender_email"], cfg["app_password"])
-            server.sendmail(cfg["sender_email"], cfg["recipient_email"], msg.as_string())
-        print(f"\n  [EMAIL] Alert sent to {cfg['recipient_email']}")
-    except Exception as e:
-        print(f"\n  [EMAIL ERROR] {e}")
+def send_weekly_summary(config: dict, products: list[dict], current_prices: dict):
+    """Send a full price summary for all tracked products."""
+    print("\n  [SUNDAY] Building weekly summary email...")
+    subject = f"📊 Weekly Price Summary — {datetime.now().strftime('%B %d, %Y')}"
+
+    rows = ""
+    for product in products:
+        name = product["name"]
+        url  = product["url"]
+        current = current_prices.get(name)
+        last_week = read_price_7days_ago(name)
+
+        if current is None:
+            current_str = "<em>unavailable</em>"
+            change_str  = "—"
+        else:
+            current_str = f"${current:.2f}"
+            if last_week is None:
+                change_str = "<span style='color:#888'>No history yet</span>"
+            elif current < last_week:
+                diff = last_week - current
+                pct  = (diff / last_week) * 100
+                change_str = f"<span style='color:#2ecc71'>▼ ${diff:.2f} ({pct:.1f}%)</span>"
+            elif current > last_week:
+                diff = current - last_week
+                pct  = (diff / last_week) * 100
+                change_str = f"<span style='color:#e74c3c'>▲ ${diff:.2f} ({pct:.1f}%)</span>"
+            else:
+                change_str = "<span style='color:#888'>— No change</span>"
+
+        rows += (
+            f"<tr>"
+            f"<td style='padding:8px;border:1px solid #ddd'><a href='{url}'>{name}</a></td>"
+            f"<td style='padding:8px;border:1px solid #ddd;font-weight:bold'>{current_str}</td>"
+            f"<td style='padding:8px;border:1px solid #ddd'>{change_str}</td>"
+            f"</tr>"
+        )
+
+    html = f"""
+    <html><body style='font-family:Arial,sans-serif;'>
+    <h2 style='color:#2c3e50'>📊 Weekly Price Summary</h2>
+    <p>Here's the current status of all your tracked products:</p>
+    <table style='border-collapse:collapse;width:100%'>
+      <thead>
+        <tr style='background:#2c3e50;color:white'>
+          <th style='padding:8px;text-align:left'>Product</th>
+          <th style='padding:8px;text-align:left'>Current Price</th>
+          <th style='padding:8px;text-align:left'>vs Last Week</th>
+        </tr>
+      </thead>
+      <tbody>{rows}</tbody>
+    </table>
+    <p style='color:#888;font-size:12px;margin-top:20px'>
+      Summary generated on {datetime.now().strftime("%B %d, %Y at %I:%M %p")} · Tracker is running normally ✅
+    </p>
+    </body></html>
+    """
+    send_email(config, subject, html)
 
 # ── Main Loop ──────────────────────────────────────────────────────────────────
 
-def run():
+def run(weekly: bool = False):
     config   = load_config()
     products = config["products"]
     alerts   = []
+    current_prices = {}
 
     print(f"\n{'='*55}")
     print(f"  Price Tracker — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    if weekly:
+        print(f"  Mode: Weekly Summary")
     print(f"{'='*55}")
 
     for product in products:
@@ -205,6 +269,7 @@ def run():
         print(f"\nChecking: {name}")
 
         new_price = scrape_price(url, name)
+        current_prices[name] = new_price
         if new_price is None:
             continue
 
@@ -232,12 +297,16 @@ def run():
     else:
         print("\n  No price drops detected this run.")
 
+    if weekly:
+        send_weekly_summary(config, products, current_prices)
+
     print(f"\n{'='*55}\n")
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Price Tracker")
-    parser.add_argument("--test", action="store_true", help="Send a test email with fake price drop data")
+    parser.add_argument("--test",    action="store_true", help="Send a test price drop email")
+    parser.add_argument("--weekly",  action="store_true", help="Run in weekly summary mode")
     args = parser.parse_args()
 
     if args.test:
@@ -264,4 +333,4 @@ if __name__ == "__main__":
         send_alert(config, fake_alerts)
         print("Done. Check your inbox at toadgranola+pricetrackerd@gmail.com")
     else:
-        run()
+        run(weekly=args.weekly)
