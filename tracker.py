@@ -154,13 +154,39 @@ def read_price_7days_ago(label: str, retailer: str) -> float | None:
         return None
     return float(past_rows[-1]["price"])
 
+def ensure_csv_header():
+    """Ensure the CSV file exists with the correct 5-column header. Migrates old 4-column files."""
+    FIELDS = ["timestamp", "name", "price", "url", "image"]
+    if not os.path.exists(PRICE_LOG):
+        with open(PRICE_LOG, "w", newline="") as f:
+            csv.DictWriter(f, fieldnames=FIELDS).writeheader()
+        return
+    # Check if header is correct
+    with open(PRICE_LOG, "r", newline="") as f:
+        first_line = f.readline().strip()
+    if first_line != ",".join(FIELDS):
+        # Read all existing rows
+        with open(PRICE_LOG, "r", newline="") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+        # Rewrite with correct header, preserving data
+        with open(PRICE_LOG, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=FIELDS)
+            writer.writeheader()
+            for row in rows:
+                writer.writerow({
+                    "timestamp": row.get("timestamp", ""),
+                    "name":      row.get("name", ""),
+                    "price":     row.get("price", ""),
+                    "url":       row.get("url", ""),
+                    "image":     row.get("image", ""),
+                })
+        print("  [INFO] CSV header migrated to 5-column format")
+
 def log_price(label: str, retailer: str, url: str, price: float, image: str | None):
     name        = f"{label} - {retailer}"
-    file_exists = os.path.exists(PRICE_LOG)
     with open(PRICE_LOG, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["timestamp", "name", "price", "url", "image"])
-        if not file_exists:
-            writer.writeheader()
         writer.writerow({
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "name":      name,
@@ -275,6 +301,7 @@ def send_weekly_summary(config: dict, buckets: list[dict], current_prices: dict)
     send_email(config, subject, html)
 
 def run(weekly: bool = False):
+    ensure_csv_header()
     config  = load_config()
     buckets = config["buckets"]
     alerts  = []
