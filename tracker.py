@@ -1,7 +1,6 @@
 """
 Price Tracker - Main Script
-Scrapes product prices and sends email alerts on price drops.
-Also sends a weekly Sunday summary at 6:30 PM Eastern.
+Scrapes product prices and images using bucket-based config structure.
 Credentials are read from environment variables (set via GitHub Secrets).
 """
 
@@ -29,7 +28,7 @@ def load_config():
     config["email"]["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", config["email"].get("recipient_email", ""))
     return config
 
-# ── Price Extraction ───────────────────────────────────────────────────────────
+# ── Price & Image Extraction ───────────────────────────────────────────────────
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -48,55 +47,85 @@ def clean_price(raw: str) -> float | None:
     except ValueError:
         return None
 
-def scrape_price(url: str, name: str) -> float | None:
+def scrape_product(url: str, label: str, retailer: str) -> dict:
+    """
+    Scrape price and image from a product page.
+    Returns dict with price (float|None) and image (str|None).
+    """
+    result = {"price": None, "image": None}
+    name   = f"{label} - {retailer}"
+
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
     except requests.RequestException as e:
         print(f"  [ERROR] Could not fetch {name}: {e}")
-        return None
+        return result
 
     soup = BeautifulSoup(response.text, "html.parser")
 
+    # ── Price selectors ──
     selectors = [
         {"name": "span", "class": re.compile(r"price", re.I)},
         {"name": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
         {"name": "span", "class": re.compile(r"product-price|sale-price|current-price", re.I)},
         {"name": "p",    "class": re.compile(r"price", re.I)},
     ]
-
     for sel in selectors:
         tag_name = sel.pop("name")
         el = soup.find(tag_name, sel)
         if el:
             price = clean_price(el.get_text())
             if price and price > 0:
-                print(f"  [OK] {name}: ${price:.2f}")
-                return price
+                result["price"] = price
+                break
 
+    # ── JSON-LD fallback for price + image ──
     for script in soup.find_all("script", type="application/ld+json"):
         try:
-            data = json.loads(script.string)
+            data  = json.loads(script.string)
             items = data if isinstance(data, list) else [data]
             for item in items:
-                offers = item.get("offers", {})
-                if isinstance(offers, list):
-                    offers = offers[0]
-                price_raw = offers.get("price") or offers.get("lowPrice")
-                if price_raw:
-                    price = clean_price(str(price_raw))
-                    if price and price > 0:
-                        print(f"  [OK via JSON-LD] {name}: ${price:.2f}")
-                        return price
+                # Price
+                if result["price"] is None:
+                    offers = item.get("offers", {})
+                    if isinstance(offers, list):
+                        offers = offers[0]
+                    price_raw = offers.get("price") or offers.get("lowPrice")
+                    if price_raw:
+                        price = clean_price(str(price_raw))
+                        if price and price > 0:
+                            result["price"] = price
+
+                # Image
+                if result["image"] is None:
+                    img = item.get("image")
+                    if isinstance(img, list):
+                        img = img[0]
+                    if isinstance(img, dict):
+                        img = img.get("url")
+                    if img and img.startswith("http"):
+                        result["image"] = img
         except Exception:
             continue
 
-    print(f"  [WARN] Could not extract price for {name}. Page structure may need tuning.")
-    return None
+    # ── OG image fallback ──
+    if result["image"] is None:
+        og = soup.find("meta", property="og:image")
+        if og and og.get("content", "").startswith("http"):
+            result["image"] = og["content"]
+
+    if result["price"]:
+        print(f"  [OK] {name}: ${result['price']:.2f}")
+    else:
+        print(f"  [WARN] Could not extract price for {name}")
+
+    return result
 
 # ── Price History (CSV) ────────────────────────────────────────────────────────
 
-def read_last_price(name: str) -> float | None:
+def read_last_price(label: str, retailer: str) -> float | None:
+    name = f"{label} - {retailer}"
     if not os.path.exists(PRICE_LOG):
         return None
     with open(PRICE_LOG, "r", newline="") as f:
@@ -105,30 +134,31 @@ def read_last_price(name: str) -> float | None:
         return None
     return float(rows[-1]["price"])
 
-def read_price_7days_ago(name: str) -> float | None:
-    """Return the closest price recorded ~7 days ago, or None."""
+def read_price_7days_ago(label: str, retailer: str) -> float | None:
+    name   = f"{label} - {retailer}"
+    cutoff = datetime.now() - timedelta(days=7)
     if not os.path.exists(PRICE_LOG):
         return None
-    cutoff = datetime.now() - timedelta(days=7)
     with open(PRICE_LOG, "r", newline="") as f:
         rows = [r for r in csv.DictReader(f) if r["name"] == name]
-    # Find rows from 7+ days ago, take the most recent one before the cutoff
     past_rows = [r for r in rows if datetime.strptime(r["timestamp"], "%Y-%m-%d %H:%M:%S") <= cutoff]
     if not past_rows:
         return None
     return float(past_rows[-1]["price"])
 
-def log_price(name: str, url: str, price: float):
+def log_price(label: str, retailer: str, url: str, price: float, image: str | None):
+    name       = f"{label} - {retailer}"
     file_exists = os.path.exists(PRICE_LOG)
     with open(PRICE_LOG, "a", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["timestamp", "name", "price", "url"])
+        writer = csv.DictWriter(f, fieldnames=["timestamp", "name", "price", "url", "image"])
         if not file_exists:
             writer.writeheader()
         writer.writerow({
             "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "name": name,
-            "price": f"{price:.2f}",
-            "url": url,
+            "name":      name,
+            "price":     f"{price:.2f}",
+            "url":       url,
+            "image":     image or "",
         })
 
 # ── Email Helpers ──────────────────────────────────────────────────────────────
@@ -147,8 +177,6 @@ def send_email(config: dict, subject: str, html: str):
         print(f"\n  [EMAIL] Sent to {cfg['recipient_email']}")
     except Exception as e:
         print(f"\n  [EMAIL ERROR] {e}")
-
-# ── Price Drop Alert ───────────────────────────────────────────────────────────
 
 def send_alert(config: dict, alerts: list[dict]):
     if not alerts:
@@ -188,26 +216,20 @@ def send_alert(config: dict, alerts: list[dict]):
     """
     send_email(config, subject, html)
 
-# ── Weekly Sunday Summary ──────────────────────────────────────────────────────
-
-def send_weekly_summary(config: dict, products: list[dict], current_prices: dict):
-    """Send a full price summary for all tracked products."""
+def send_weekly_summary(config: dict, buckets: list[dict], current_prices: dict):
     print("\n  [SUNDAY] Building weekly summary email...")
     subject = f"📊 Weekly Price Summary — {datetime.now().strftime('%B %d, %Y')}"
-
     rows = ""
-    for product in products:
-        name = product["name"]
-        url  = product["url"]
-        current = current_prices.get(name)
-        last_week = read_price_7days_ago(name)
-
-        if current is None:
-            current_str = "<em>unavailable</em>"
-            change_str  = "—"
-        else:
-            current_str = f"${current:.2f}"
-            if last_week is None:
+    for bucket in buckets:
+        label = bucket["label"]
+        for r in bucket["retailers"]:
+            name     = f"{label} - {r['name']}"
+            current  = current_prices.get(name)
+            last_week = read_price_7days_ago(label, r["name"])
+            current_str = f"${current:.2f}" if current else "<em>unavailable</em>"
+            if current is None:
+                change_str = "—"
+            elif last_week is None:
                 change_str = "<span style='color:#888'>No history yet</span>"
             elif current < last_week:
                 diff = last_week - current
@@ -219,19 +241,16 @@ def send_weekly_summary(config: dict, products: list[dict], current_prices: dict
                 change_str = f"<span style='color:#e74c3c'>▲ ${diff:.2f} ({pct:.1f}%)</span>"
             else:
                 change_str = "<span style='color:#888'>— No change</span>"
-
-        rows += (
-            f"<tr>"
-            f"<td style='padding:8px;border:1px solid #ddd'><a href='{url}'>{name}</a></td>"
-            f"<td style='padding:8px;border:1px solid #ddd;font-weight:bold'>{current_str}</td>"
-            f"<td style='padding:8px;border:1px solid #ddd'>{change_str}</td>"
-            f"</tr>"
-        )
-
+            rows += (
+                f"<tr>"
+                f"<td style='padding:8px;border:1px solid #ddd'>{name}</td>"
+                f"<td style='padding:8px;border:1px solid #ddd;font-weight:bold'>{current_str}</td>"
+                f"<td style='padding:8px;border:1px solid #ddd'>{change_str}</td>"
+                f"</tr>"
+            )
     html = f"""
     <html><body style='font-family:Arial,sans-serif;'>
     <h2 style='color:#2c3e50'>📊 Weekly Price Summary</h2>
-    <p>Here's the current status of all your tracked products:</p>
     <table style='border-collapse:collapse;width:100%'>
       <thead>
         <tr style='background:#2c3e50;color:white'>
@@ -252,9 +271,9 @@ def send_weekly_summary(config: dict, products: list[dict], current_prices: dict
 # ── Main Loop ──────────────────────────────────────────────────────────────────
 
 def run(weekly: bool = False):
-    config   = load_config()
-    products = config["products"]
-    alerts   = []
+    config  = load_config()
+    buckets = config["buckets"]
+    alerts  = []
     current_prices = {}
 
     print(f"\n{'='*55}")
@@ -263,34 +282,41 @@ def run(weekly: bool = False):
         print(f"  Mode: Weekly Summary")
     print(f"{'='*55}")
 
-    for product in products:
-        name = product["name"]
-        url  = product["url"]
-        print(f"\nChecking: {name}")
+    for bucket in buckets:
+        label = bucket["label"]
+        print(f"\n── {label}")
+        for retailer in bucket["retailers"]:
+            rname = retailer["name"]
+            url   = retailer["url"]
+            name  = f"{label} - {rname}"
+            print(f"  Checking {rname}...")
 
-        new_price = scrape_price(url, name)
-        current_prices[name] = new_price
-        if new_price is None:
-            continue
+            result    = scrape_product(url, label, rname)
+            new_price = result["price"]
+            image     = result["image"]
+            current_prices[name] = new_price
 
-        old_price = read_last_price(name)
-        log_price(name, url, new_price)
+            if new_price is None:
+                continue
 
-        if old_price is None:
-            print(f"  [INFO] First time tracking. Baseline price set: ${new_price:.2f}")
-        elif new_price < old_price:
-            drop = old_price - new_price
-            pct  = (drop / old_price) * 100
-            print(f"  [DROP] ${old_price:.2f} → ${new_price:.2f}  (-${drop:.2f}, -{pct:.1f}%)")
-            alerts.append({
-                "name": name, "url": url,
-                "old_price": old_price, "new_price": new_price,
-                "drop": drop, "pct": pct,
-            })
-        else:
-            print(f"  [NO CHANGE] Current price: ${new_price:.2f}  (was ${old_price:.2f})")
+            old_price = read_last_price(label, rname)
+            log_price(label, rname, url, new_price, image)
 
-        time.sleep(2)
+            if old_price is None:
+                print(f"    [INFO] Baseline set: ${new_price:.2f}")
+            elif new_price < old_price:
+                drop = old_price - new_price
+                pct  = (drop / old_price) * 100
+                print(f"    [DROP] ${old_price:.2f} → ${new_price:.2f} (-${drop:.2f}, -{pct:.1f}%)")
+                alerts.append({
+                    "name": name, "url": url,
+                    "old_price": old_price, "new_price": new_price,
+                    "drop": drop, "pct": pct,
+                })
+            else:
+                print(f"    [NO CHANGE] ${new_price:.2f} (was ${old_price:.2f})")
+
+            time.sleep(2)
 
     if alerts:
         send_alert(config, alerts)
@@ -298,15 +324,15 @@ def run(weekly: bool = False):
         print("\n  No price drops detected this run.")
 
     if weekly:
-        send_weekly_summary(config, products, current_prices)
+        send_weekly_summary(config, buckets, current_prices)
 
     print(f"\n{'='*55}\n")
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Price Tracker")
-    parser.add_argument("--test",    action="store_true", help="Send a test price drop email")
-    parser.add_argument("--weekly",  action="store_true", help="Run in weekly summary mode")
+    parser.add_argument("--test",   action="store_true", help="Send a test price drop email")
+    parser.add_argument("--weekly", action="store_true", help="Run in weekly summary mode")
     args = parser.parse_args()
 
     if args.test:
@@ -315,19 +341,13 @@ if __name__ == "__main__":
         fake_alerts = [
             {
                 "name": "Turin DF83 Grinder - EspressoOutlet",
-                "url": "https://espressooutlet.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=41773030113355",
-                "old_price": 399.00,
-                "new_price": 349.00,
-                "drop": 50.00,
-                "pct": 12.5,
+                "url":  "https://espressooutlet.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=41773030113355",
+                "old_price": 399.00, "new_price": 349.00, "drop": 50.00, "pct": 12.5,
             },
             {
                 "name": "Lelit Bianca - CliveCoffee",
-                "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912",
-                "old_price": 2799.00,
-                "new_price": 2599.00,
-                "drop": 200.00,
-                "pct": 7.1,
+                "url":  "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912",
+                "old_price": 2799.00, "new_price": 2599.00, "drop": 200.00, "pct": 7.1,
             },
         ]
         send_alert(config, fake_alerts)
