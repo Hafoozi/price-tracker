@@ -1,6 +1,7 @@
 """
 Price Tracker - Main Script
 Scrapes product prices and sends email alerts on price drops.
+Credentials are read from environment variables (set via GitHub Secrets).
 """
 
 import requests
@@ -16,13 +17,20 @@ import time
 import re
 
 # ── Configuration ─────────────────────────────────────────────────────────────
-# Load config from config.json
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
 PRICE_LOG   = os.path.join(os.path.dirname(__file__), "price_history.csv")
 
 def load_config():
     with open(CONFIG_FILE, "r") as f:
-        return json.load(f)
+        config = json.load(f)
+
+    # Override email credentials with environment variables if present
+    # This is how GitHub Actions securely injects your secrets
+    config["email"]["sender_email"]    = os.environ.get("SENDER_EMAIL",    config["email"].get("sender_email", ""))
+    config["email"]["app_password"]    = os.environ.get("APP_PASSWORD",    config["email"].get("app_password", ""))
+    config["email"]["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", config["email"].get("recipient_email", ""))
+
+    return config
 
 # ── Price Extraction ───────────────────────────────────────────────────────────
 HEADERS = {
@@ -60,13 +68,10 @@ def scrape_price(url: str, name: str) -> float | None:
 
     # Common selectors — ordered from most specific to most generic
     selectors = [
-        # Shopify standard
         {"name": "span", "class": re.compile(r"price", re.I)},
         {"name": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
-        # Generic retail patterns
         {"name": "span", "class": re.compile(r"product-price|sale-price|current-price", re.I)},
         {"name": "p",    "class": re.compile(r"price", re.I)},
-        # Meta tag fallback (many Shopify stores expose this)
     ]
 
     for sel in selectors:
@@ -82,7 +87,6 @@ def scrape_price(url: str, name: str) -> float | None:
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.string)
-            # Handle both single object and list
             items = data if isinstance(data, list) else [data]
             for item in items:
                 offers = item.get("offers", {})
@@ -136,7 +140,6 @@ def send_alert(config: dict, alerts: list[dict]):
     cfg = config["email"]
     subject = f"🔔 Price Drop Alert — {len(alerts)} item(s) dropped!"
 
-    # Build HTML body
     rows = ""
     for a in alerts:
         rows += (
@@ -222,7 +225,7 @@ def run():
         else:
             print(f"  [NO CHANGE] Current price: ${new_price:.2f}  (was ${old_price:.2f})")
 
-        time.sleep(2)  # Be polite between requests
+        time.sleep(2)
 
     if alerts:
         send_alert(config, alerts)
@@ -259,6 +262,6 @@ if __name__ == "__main__":
             },
         ]
         send_alert(config, fake_alerts)
-        print("Done. Check your inbox at toadgranola+mybuild@gmail.com")
+        print("Done. Check your inbox at toadgranola+pricetrackerd@gmail.com")
     else:
         run()
