@@ -15,8 +15,8 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 import time
 import re
+from urllib.parse import urlparse, urljoin
 
-# ── Configuration ─────────────────────────────────────────────────────────────
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), "config.json")
 PRICE_LOG   = os.path.join(os.path.dirname(__file__), "price_history.csv")
 
@@ -28,7 +28,6 @@ def load_config():
     config["email"]["recipient_email"] = os.environ.get("RECIPIENT_EMAIL", config["email"].get("recipient_email", ""))
     return config
 
-# ── Price & Image Extraction ───────────────────────────────────────────────────
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -47,14 +46,29 @@ def clean_price(raw: str) -> float | None:
     except ValueError:
         return None
 
+def clean_image_url(img, page_url: str) -> str | None:
+    if not img or not isinstance(img, str):
+        return None
+    img = img.strip()
+    if not img:
+        return None
+    if img.startswith("//"):
+        img = "https:" + img
+    if not img.startswith("http"):
+        img = urljoin(page_url, img)
+    if img.startswith("http://"):
+        img = "https://" + img[7:]
+    try:
+        parsed = urlparse(img)
+        if not parsed.netloc:
+            return None
+    except Exception:
+        return None
+    return img
+
 def scrape_product(url: str, label: str, retailer: str) -> dict:
-    """
-    Scrape price and image from a product page.
-    Returns dict with price (float|None) and image (str|None).
-    """
     result = {"price": None, "image": None}
     name   = f"{label} - {retailer}"
-
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
         response.raise_for_status()
@@ -64,7 +78,6 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
 
     soup = BeautifulSoup(response.text, "html.parser")
 
-    # ── Price selectors ──
     selectors = [
         {"name": "span", "class": re.compile(r"price", re.I)},
         {"name": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
@@ -80,13 +93,11 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
                 result["price"] = price
                 break
 
-    # ── JSON-LD fallback for price + image ──
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data  = json.loads(script.string)
             items = data if isinstance(data, list) else [data]
             for item in items:
-                # Price
                 if result["price"] is None:
                     offers = item.get("offers", {})
                     if isinstance(offers, list):
@@ -96,33 +107,30 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
                         price = clean_price(str(price_raw))
                         if price and price > 0:
                             result["price"] = price
-
-                # Image
                 if result["image"] is None:
                     img = item.get("image")
                     if isinstance(img, list):
                         img = img[0]
                     if isinstance(img, dict):
                         img = img.get("url")
-                    if img and img.startswith("http"):
-                        result["image"] = img
+                    cleaned = clean_image_url(img, url)
+                    if cleaned:
+                        result["image"] = cleaned
         except Exception:
             continue
 
-    # ── OG image fallback ──
     if result["image"] is None:
-        og = soup.find("meta", property="og:image")
-        if og and og.get("content", "").startswith("http"):
-            result["image"] = og["content"]
+        og  = soup.find("meta", property="og:image")
+        img = og.get("content", "") if og else ""
+        cleaned = clean_image_url(img, url)
+        if cleaned:
+            result["image"] = cleaned
 
     if result["price"]:
-        print(f"  [OK] {name}: ${result['price']:.2f}")
+        print(f"  [OK] {name}: ${result['price']:.2f}  image={'yes' if result['image'] else 'no'}")
     else:
         print(f"  [WARN] Could not extract price for {name}")
-
     return result
-
-# ── Price History (CSV) ────────────────────────────────────────────────────────
 
 def read_last_price(label: str, retailer: str) -> float | None:
     name = f"{label} - {retailer}"
@@ -147,7 +155,7 @@ def read_price_7days_ago(label: str, retailer: str) -> float | None:
     return float(past_rows[-1]["price"])
 
 def log_price(label: str, retailer: str, url: str, price: float, image: str | None):
-    name       = f"{label} - {retailer}"
+    name        = f"{label} - {retailer}"
     file_exists = os.path.exists(PRICE_LOG)
     with open(PRICE_LOG, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=["timestamp", "name", "price", "url", "image"])
@@ -160,8 +168,6 @@ def log_price(label: str, retailer: str, url: str, price: float, image: str | No
             "url":       url,
             "image":     image or "",
         })
-
-# ── Email Helpers ──────────────────────────────────────────────────────────────
 
 def send_email(config: dict, subject: str, html: str):
     cfg = config["email"]
@@ -223,8 +229,8 @@ def send_weekly_summary(config: dict, buckets: list[dict], current_prices: dict)
     for bucket in buckets:
         label = bucket["label"]
         for r in bucket["retailers"]:
-            name     = f"{label} - {r['name']}"
-            current  = current_prices.get(name)
+            name      = f"{label} - {r['name']}"
+            current   = current_prices.get(name)
             last_week = read_price_7days_ago(label, r["name"])
             current_str = f"${current:.2f}" if current else "<em>unavailable</em>"
             if current is None:
@@ -267,8 +273,6 @@ def send_weekly_summary(config: dict, buckets: list[dict], current_prices: dict)
     </body></html>
     """
     send_email(config, subject, html)
-
-# ── Main Loop ──────────────────────────────────────────────────────────────────
 
 def run(weekly: bool = False):
     config  = load_config()
