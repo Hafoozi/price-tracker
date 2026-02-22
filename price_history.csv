@@ -1,4 +1,4 @@
-timestamp,name,price,url
+timestamp,name,price,url,image
 2026-02-22 11:05:37,Turin DF83 Grinder - EspressoOutlet,599.00,https://espressooutlet.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=41773030113355
 2026-02-22 11:05:40,Turin DF83 Grinder - TurinGrinders,499.00,https://www.turingrinders.com/products/turin-df83-gen-2-coffee-espresso-grinder?_pos=2&_psq=df83&_ss=e&_v=1.0
 2026-02-22 11:05:43,Turin DF83 Grinder - CliffAndPebble,499.00,https://cliffandpebble.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=53087496896785
@@ -71,3 +71,4 @@ timestamp,name,price,url
 2026-02-22 19:34:37,Brake Free Tail Light - BrakeFreeTech,159.99,https://www.brakefreetech.com/products/brake-free,http://www.brakefreetech.com/cdn/shop/products/BlackBrakeFree-square-lifestyle1.png?v=1726800560
 2026-02-22 19:34:40,Brake Free Tail Light - RevZilla,159.99,https://www.revzilla.com/motorcycle/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795,https://www.revzilla.com/product_images/2343/1140/brake_free_smart_brake_light_for_helmets_black.jpg
 2026-02-22 19:34:43,Brake Free Tail Light - CycleGear,159.99,https://www.cyclegear.com/accessories/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795,https://www.cyclegear.com/_a/product_images/2343/1140/brake_free_smart_brake_light_for_helmets_black.jpg
+
