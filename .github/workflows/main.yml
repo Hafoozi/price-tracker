@@ -34,14 +34,6 @@ jobs:
       - name: Install dependencies
         run: pip install requests beautifulsoup4
 
-      - name: Restore price history
-        uses: actions/cache@v4
-        with:
-          path: price_history.csv
-          key: price-history-${{ github.run_id }}
-          restore-keys: |
-            price-history-
-
       - name: Run price tracker (normal)
         if: github.event.schedule != '30 23 * * 0' && github.event.inputs.mode != 'weekly'
         env:
