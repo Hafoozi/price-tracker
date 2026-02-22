@@ -1,0 +1,45 @@
+{
+  "email": {
+    "sender_email": "toadgranola@gmail.com",
+    "app_password": "ipwjaxytdodorihk",
+    "recipient_email": "toadgranola+pricetracker@gmail.com"
+  },
+  "products": [
+    {
+      "name": "Turin DF83 Grinder - EspressoOutlet",
+      "url": "https://espressooutlet.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=41773030113355"
+    },
+    {
+      "name": "Turin DF83 Grinder - TurinGrinders",
+      "url": "https://www.turingrinders.com/products/turin-df83-gen-2-coffee-espresso-grinder?_pos=2&_psq=df83&_ss=e&_v=1.0"
+    },
+    {
+      "name": "Turin DF83 Grinder - CliffAndPebble",
+      "url": "https://cliffandpebble.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=53087496896785"
+    },
+    {
+      "name": "Lelit Bianca - CliveCoffee",
+      "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
+    },
+    {
+      "name": "Lelit Bianca - SurLaTable",
+      "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
+    },
+    {
+      "name": "Lelit Bianca - CoffeeMachineDepot",
+      "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
+    },
+    {
+      "name": "Brake Free Light - BrakeFreeTech",
+      "url": "https://www.brakefreetech.com/products/brake-free"
+    },
+    {
+      "name": "Brake Free Light - RevZilla",
+      "url": "https://www.revzilla.com/motorcycle/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
+    },
+    {
+      "name": "Brake Free Light - CycleGear",
+      "url": "https://www.cyclegear.com/accessories/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
+    }
+  ]
+}
