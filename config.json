@@ -1,8 +1,8 @@
 {
   "email": {
-    "sender_email": "toadgranola@gmail.com",
-    "app_password": "ipwjaxytdodorihk",
-    "recipient_email": "toadgranola+pricetracker@gmail.com"
+    "sender_email": "",
+    "app_password": "",
+    "recipient_email": ""
   },
   "products": [
     {
