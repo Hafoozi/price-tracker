@@ -205,14 +205,44 @@
     .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.76rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity 0.2s;z-index:300}
     .toast.visible{opacity:1}
 
+    /* Mobile header menu */
+    .mobile-menu-btn{display:none}
+    .mobile-only{display:none}
+    @media(max-width:640px){.mobile-only{display:flex!important}}
+    .mobile-header-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:175px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:menuIn 0.1s ease}
+    .mobile-header-menu.hidden{display:none}
+    /* Hide mobile-only + button on desktop */
+    @media(min-width:641px){
+      .mobile-menu-wrap{display:none}
+      .header-right .btn-primary:last-of-type{display:none}
+    }
     /* Responsive */
     @media(max-width:640px){
-      header{padding:12px 14px}
-      .header-right{gap:4px}
-      .btn{padding:5px 9px;font-size:0.7rem}
-      main{padding:12px}
-      .price-current{font-size:1rem}
-      .graph-wrap{height:115px}
+      header{padding:11px 14px}
+      main{padding:10px}
+      /* Hide desktop-only header buttons */
+      .desktop-only{display:none!important}
+      /* Mobile menu button */
+      .mobile-menu-btn{display:flex!important}
+      /* Larger tap targets */
+      .card-header{padding:14px 14px;gap:10px;min-height:72px}
+      .menu-btn{width:36px;height:36px;font-size:1.1rem}
+      .collapse-arrow{font-size:0.9rem;padding:6px}
+      .price-current{font-size:1.1rem}
+      .price-vs{font-size:0.62rem}
+      .product-image,.product-image-placeholder{width:46px;height:46px}
+      .product-name{font-size:0.88rem}
+      /* Graph */
+      .graph-wrap{height:110px}
+      .tf-btn{padding:5px 10px;font-size:0.7rem}
+      /* Retailer rows */
+      .retailer-row{padding:9px 11px}
+      .retailer-name a{font-size:0.85rem}
+      .retailer-price{font-size:0.85rem}
+      /* Menu items larger on mobile */
+      .menu-item{padding:12px 12px;font-size:0.85rem}
+      /* Card menu wider on mobile */
+      .card-menu{min-width:190px}
     }
   </style>
 </head>
@@ -237,11 +267,22 @@
           <div class="dot-row"><div class="mini-dot" style="background:var(--red)"></div>Outdated — over 14 hrs old</div>
         </div>
       </div>
-      <button class="btn btn-secondary" onclick="toggleAll(true)">Expand All</button>
-      <button class="btn btn-secondary" onclick="toggleAll(false)">Collapse All</button>
-      <button class="btn btn-secondary" onclick="loadData()">↻ Reload Data</button>
-      <button class="btn btn-pause" onclick="openPauseModal()">⏸ Pause</button>
-      <button class="btn btn-primary" onclick="openAddBucket()">+ Add Product</button>
+      <button class="btn btn-secondary desktop-only" onclick="toggleAll(true)">Expand All</button>
+      <button class="btn btn-secondary desktop-only" onclick="toggleAll(false)">Collapse All</button>
+      <button class="btn btn-secondary desktop-only" onclick="loadData()">↻ Reload Data</button>
+      <button class="btn btn-pause desktop-only" onclick="openPauseModal()">⏸ Pause</button>
+      <button class="btn btn-primary desktop-only" onclick="openAddBucket()">+ Add Product</button>
+      <!-- Mobile condensed controls -->
+      <button class="btn btn-primary mobile-only" onclick="openAddBucket()">+</button>
+      <div class="mobile-menu-wrap" style="position:relative">
+        <button class="btn btn-secondary mobile-menu-btn" style="display:none" onclick="toggleMobileMenu()" id="mobile-header-btn">☰</button>
+        <div class="mobile-header-menu hidden" id="mobile-header-menu">
+          <div class="menu-item" onclick="toggleAll(true);closeMobileMenu()">Expand All</div>
+          <div class="menu-item" onclick="toggleAll(false);closeMobileMenu()">Collapse All</div>
+          <div class="menu-item" onclick="loadData();closeMobileMenu()">↻ Reload Data</div>
+          <div class="menu-item" onclick="openPauseModal();closeMobileMenu()">⏸ Pause Tracking</div>
+        </div>
+      </div>
     </div>
   </div>
 </header>
@@ -441,7 +482,8 @@ function renderDashboard(){
   const grid=document.getElementById('products-grid');
   grid.innerHTML='';
   Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
-  config.buckets.forEach((b,i)=>grid.appendChild(buildCard(b,i,collapseState[i]!==false)));
+  const isMobile=window.innerWidth<=640;
+  config.buckets.forEach((b,i)=>grid.appendChild(buildCard(b,i,collapseState[i]!==undefined?collapseState[i]!==false:!isMobile)));
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
   if(reorderMode)grid.classList.add('reorder-mode');
@@ -882,6 +924,15 @@ function changeTimeframe(btn,idx,tf){
   const wrap=document.getElementById('chart-'+idx)?.parentElement;
   if(wrap&&!wrap.querySelector('canvas'))wrap.innerHTML=`<canvas id="chart-${idx}"></canvas>`;
   drawChart(config.buckets[idx],idx,tf);
+}
+
+// ── Mobile header menu ───────────────────────────────────────────────────────
+function toggleMobileMenu(){
+  const menu=document.getElementById('mobile-header-menu');
+  menu.classList.toggle('hidden');
+}
+function closeMobileMenu(){
+  document.getElementById('mobile-header-menu')?.classList.add('hidden');
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
