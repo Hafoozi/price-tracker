@@ -14,68 +14,73 @@
       --red:#f75c5c;--yellow:#f7c948;--orange:#f79c4f;
       --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:12px;
     }
-    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh}
 
     /* ── Header ── */
-    header{padding:16px 24px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
-    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+    header{padding:14px 22px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
+    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:10px}
     .header-left h1{font-size:1.15rem;font-weight:600;white-space:nowrap}
     .header-left h1 span{color:var(--accent)}
-    .header-meta{font-size:0.7rem;color:var(--muted);font-family:var(--mono);margin-top:2px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .header-error{color:var(--yellow);font-size:0.68rem;font-family:var(--mono)}
-    .header-right{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .header-meta{font-size:0.68rem;color:var(--muted);font-family:var(--mono);margin-top:2px;display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .header-error{color:var(--yellow)}
 
-    /* Status dot */
-    .status-wrap{display:flex;align-items:center;gap:5px;position:relative;cursor:default;padding:4px 0}
+    /* Status */
+    .status-wrap{display:flex;align-items:center;gap:5px;position:relative;cursor:default}
     .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
     .status-dot.green{background:var(--green)}
     .status-dot.yellow{background:var(--yellow)}
     .status-dot.red{background:var(--red)}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .status-text{font-size:0.7rem;color:var(--muted);font-family:var(--mono);white-space:nowrap}
-    .status-tooltip{position:absolute;top:calc(100% + 6px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:0.72rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:500;box-shadow:0 4px 16px rgba(0,0,0,0.5)}
+    .status-text{font-size:0.68rem;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+    .status-tooltip{position:absolute;top:calc(100%+8px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:0.7rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.5)}
     .status-wrap:hover .status-tooltip{opacity:1}
-    .status-tooltip.visible{opacity:1!important}
     .dot-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
     .dot-row:last-child{margin-bottom:0}
     .mini-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
     /* Buttons */
-    .btn{padding:6px 12px;border-radius:8px;font-size:0.76rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all 0.15s;white-space:nowrap}
+    .btn{padding:6px 12px;border-radius:8px;font-size:0.76rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all .15s;white-space:nowrap;line-height:1.3}
     .btn-secondary{background:var(--surface2);color:var(--text)}
     .btn-secondary:hover{background:var(--surface);border-color:var(--accent)}
-    .btn-primary{background:var(--accent);color:white;border-color:var(--accent)}
+    .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
     .btn-primary:hover{background:#3a7ae0}
-    .btn-danger{background:rgba(247,92,92,0.12);color:var(--red);border-color:rgba(247,92,92,0.3)}
-    .btn-danger:hover{background:rgba(247,92,92,0.22)}
-    .btn-pause{background:rgba(247,201,72,0.12);color:var(--yellow);border-color:rgba(247,201,72,0.3)}
-    .btn-pause:hover{background:rgba(247,201,72,0.22)}
+    .btn-pause{background:rgba(247,201,72,.12);color:var(--yellow);border-color:rgba(247,201,72,.3)}
+    .btn-pause:hover{background:rgba(247,201,72,.22)}
+    .btn-danger{background:rgba(247,92,92,.12);color:var(--red);border-color:rgba(247,92,92,.3)}
+    .btn-danger:hover{background:rgba(247,92,92,.22)}
+
+    /* Header right */
+    .header-right{display:flex;align-items:center;gap:7px;flex-shrink:0}
+    .hdr-desktop{display:flex;align-items:center;gap:7px}
+    .hdr-mobile{display:none;align-items:center;gap:7px;position:relative}
+
+    /* Mobile header dropdown */
+    .mobile-dropdown{position:absolute;top:calc(100%+8px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:180px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+    .mobile-dropdown.hidden{display:none}
 
     /* Reorder banner */
-    .reorder-banner{display:none;background:rgba(79,142,247,0.1);border-bottom:1px solid rgba(79,142,247,0.3);padding:7px 24px;font-size:0.76rem;color:var(--accent);text-align:center}
+    .reorder-banner{display:none;background:rgba(79,142,247,.1);border-bottom:1px solid rgba(79,142,247,.3);padding:7px 22px;font-size:0.75rem;color:var(--accent);text-align:center}
     .reorder-banner.active{display:block}
 
     /* Main */
-    main{max-width:1080px;margin:0 auto;padding:22px 18px}
+    main{max-width:1080px;margin:0 auto;padding:20px 18px}
     #loading,#error-state{text-align:center;padding:70px 20px;color:var(--muted);font-family:var(--mono);font-size:0.83rem}
     #error-state{color:var(--red)}
-    .products-grid{display:grid;gap:13px}
+    .products-grid{display:grid;gap:12px}
 
     /* Card */
-    .product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp 0.3s ease both;transition:border-color 0.15s}
+    .product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
     .product-card.drag-over{border-color:var(--accent);border-style:dashed}
-    .product-card.dragging{opacity:0.4;border-color:var(--accent)}
+    .product-card.dragging{opacity:.4;border-color:var(--accent)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 
     /* Card header */
-    .card-header{padding:13px 17px;display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;transition:background 0.15s;border-radius:var(--radius)}
-    .card-header:hover{background:rgba(255,255,255,0.015)}
-    .card-body-open .card-header{border-radius:var(--radius) var(--radius) 0 0}
+    .card-header{padding:13px 16px;display:flex;align-items:center;gap:11px;cursor:pointer;user-select:none;transition:background .15s;-webkit-tap-highlight-color:transparent}
+    .card-header:hover,.card-header:active{background:rgba(255,255,255,.02)}
 
     /* Drag handle */
-    .drag-handle{display:none;flex-direction:column;gap:3px;padding:4px;cursor:grab;flex-shrink:0;color:var(--muted);transition:color 0.15s;border-radius:4px}
-    .drag-handle:active{cursor:grabbing}
-    .drag-handle:hover{color:var(--accent)}
+    .drag-handle{display:none;flex-direction:column;gap:3px;padding:6px 4px;cursor:grab;flex-shrink:0;color:var(--muted);border-radius:4px;touch-action:none}
+    .drag-handle:active{cursor:grabbing;color:var(--accent)}
     .drag-handle span{display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
     .reorder-mode .drag-handle{display:flex}
 
@@ -85,167 +90,141 @@
 
     /* Header info */
     .card-header-info{flex:1;min-width:0}
-    .product-name{font-size:0.92rem;font-weight:600;letter-spacing:-0.2px;overflow:hidden;text-overflow:ellipsis}
+    .product-name{font-size:0.92rem;font-weight:600;letter-spacing:-.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .product-sub{display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap}
-    .retailer-count{font-size:0.67rem;color:var(--muted);font-family:var(--mono)}
-    .warning-icon{font-size:0.68rem;color:var(--yellow)}
+    .retailer-count{font-size:0.66rem;color:var(--muted);font-family:var(--mono)}
+    .warning-badge{font-size:0.66rem;color:var(--yellow)}
 
     /* Price block */
     .card-header-right{display:flex;align-items:center;gap:9px;flex-shrink:0}
-    .price-block{text-align:right}
-    .price-current{font-size:1.2rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1}
+    .price-block{text-align:right;min-width:80px}
+    .price-current{font-size:1.2rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1.1}
     .price-current.no-price{color:var(--muted);font-size:0.88rem}
-    .price-vs{font-size:0.63rem;font-family:var(--mono);margin-top:2px}
+    .price-vs{font-size:0.62rem;font-family:var(--mono);margin-top:2px;line-height:1.2}
     .price-vs.below{color:var(--green)}
     .price-vs.above{color:var(--orange)}
     .price-vs.neutral{color:var(--muted)}
 
-    /* Menu button — key fix: position relative on wrapper, overflow visible */
+    /* Card ⋯ menu — fixed z-index overflow */
     .menu-wrap{position:relative;flex-shrink:0}
-    .menu-btn{width:27px;height:27px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.15s;line-height:1}
-    .menu-btn:hover{border-color:var(--accent);color:var(--text)}
-    .card-menu{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:165px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:menuIn 0.1s ease}
-    @keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    .menu-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .menu-btn:hover,.menu-btn:active{border-color:var(--accent);color:var(--text)}
+    .card-menu{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:170px;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.6)}
     .card-menu.hidden{display:none}
-    .menu-item{display:flex;align-items:center;padding:8px 10px;border-radius:7px;font-size:0.78rem;cursor:pointer;transition:background 0.12s;color:var(--text)}
-    .menu-item:hover{background:var(--border)}
+    @keyframes menuIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+    .card-menu:not(.hidden){animation:menuIn .1s ease}
+    .menu-item{display:flex;align-items:center;padding:10px 11px;border-radius:7px;font-size:0.8rem;cursor:pointer;transition:background .12s;color:var(--text);-webkit-tap-highlight-color:transparent}
+    .menu-item:hover,.menu-item:active{background:var(--border)}
     .menu-item.danger{color:var(--red)}
-    .menu-item.danger:hover{background:rgba(247,92,92,0.12)}
+    .menu-item.danger:hover,.menu-item.danger:active{background:rgba(247,92,92,.12)}
     .menu-divider{height:1px;background:var(--border);margin:3px 0}
 
     /* Collapse arrow */
-    .collapse-arrow{color:var(--muted);font-size:0.62rem;transition:transform 0.2s;flex-shrink:0}
+    .collapse-arrow{color:var(--muted);font-size:0.65rem;transition:transform .2s;flex-shrink:0;padding:4px}
     .collapse-arrow.open{transform:rotate(180deg)}
 
     /* Card body */
-    .card-body{overflow:hidden;transition:max-height 0.28s ease;max-height:0}
-    .card-body.open{overflow:visible;max-height:2000px;border-top:1px solid var(--border)}
+    .card-body{overflow:hidden;transition:max-height .3s ease;max-height:0}
+    .card-body.open{max-height:2500px;border-top:1px solid var(--border)}
 
     /* Retailers */
-    .retailers{padding:10px 17px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
-    .retailer-row{display:flex;align-items:center;justify-content:space-between;padding:7px 11px;border-radius:8px;background:var(--surface2)}
+    .retailers{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+    .retailer-row{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-radius:8px;background:var(--surface2)}
     .retailer-row.is-best{border-left:3px solid var(--green)}
-    .retailer-row.is-failed{opacity:0.5}
+    .retailer-row.is-failed{opacity:.5}
     .retailer-row.is-error{border-left:3px solid var(--yellow)}
-    .retailer-info{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+    .retailer-info{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
     .retailer-name a{color:var(--text);text-decoration:none;font-size:0.82rem}
     .retailer-name a:hover{color:var(--accent)}
-    .tag{font-size:0.58rem;padding:2px 6px;border-radius:20px;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.4px}
-    .tag-best{background:rgba(52,217,139,0.15);color:var(--green);border:1px solid rgba(52,217,139,0.3)}
-    .tag-failed{background:rgba(247,92,92,0.15);color:var(--red);border:1px solid rgba(247,92,92,0.3)}
-    .tag-error{background:rgba(247,201,72,0.15);color:var(--yellow);border:1px solid rgba(247,201,72,0.3)}
+    .tag{font-size:0.58rem;padding:2px 6px;border-radius:20px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px}
+    .tag-best{background:rgba(52,217,139,.15);color:var(--green);border:1px solid rgba(52,217,139,.3)}
+    .tag-failed{background:rgba(247,92,92,.15);color:var(--red);border:1px solid rgba(247,92,92,.3)}
+    .tag-error{background:rgba(247,201,72,.15);color:var(--yellow);border:1px solid rgba(247,201,72,.3)}
     .retailer-price{font-family:var(--mono);font-size:0.83rem;font-weight:500}
     .retailer-price.is-best{color:var(--green)}
     .retailer-price.is-unavailable{color:var(--muted);font-style:italic;font-size:0.73rem}
 
     /* Add retailer */
-    .add-retailer-row{padding:8px 17px 13px}
+    .add-retailer-row{padding:8px 16px 13px}
     .add-retailer-form{display:none;gap:6px;flex-wrap:wrap;margin-top:6px}
     .add-retailer-form.open{display:flex}
-    .add-retailer-form input{flex:1;min-width:120px;padding:6px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;font-family:var(--font);outline:none}
+    .add-retailer-form input{flex:1;min-width:120px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;font-family:var(--font);outline:none}
     .add-retailer-form input:focus{border-color:var(--accent)}
-    .btn-add-retailer{font-size:0.7rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;transition:all 0.15s}
+    .btn-add-retailer{font-size:0.7rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:6px 10px;cursor:pointer;transition:all .15s}
     .btn-add-retailer:hover{border-color:var(--accent);color:var(--accent)}
 
     /* Graph */
-    .graph-section{padding:13px 17px 17px}
+    .graph-section{padding:12px 16px 16px}
     .graph-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px}
-    .graph-title{font-size:0.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .graph-title{font-size:0.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
     .timeframe-btns{display:flex;gap:3px}
-    .tf-btn{padding:3px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.66rem;cursor:pointer;font-family:var(--mono);transition:all 0.15s}
-    .tf-btn:hover{border-color:var(--accent);color:var(--text)}
-    .tf-btn.active{background:var(--accent);border-color:var(--accent);color:white}
+    .tf-btn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.67rem;cursor:pointer;font-family:var(--mono);transition:all .15s;-webkit-tap-highlight-color:transparent}
+    .tf-btn:hover,.tf-btn:active{border-color:var(--accent);color:var(--text)}
+    .tf-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
     .graph-wrap{position:relative;height:140px}
-    canvas{width:100%!important}
+    canvas{width:100%!important;display:block}
     .no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:0.73rem;font-family:var(--mono)}
 
-    /* Chart tooltip */
-    .chart-tooltip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.73rem;pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:1000;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,0.4)}
+    /* Tooltip */
+    .chart-tooltip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.73rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9998;min-width:148px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
     .chart-tooltip.visible{opacity:1}
-    .tooltip-date{font-family:var(--mono);font-size:0.63rem;color:var(--muted);margin-bottom:4px}
-    .tooltip-price{font-family:var(--mono);font-size:0.92rem;font-weight:500;color:var(--green);margin-bottom:3px}
-    .tooltip-retailers{font-size:0.66rem;color:var(--muted);line-height:1.5}
+    .tooltip-date{font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-bottom:4px}
+    .tooltip-price{font-family:var(--mono);font-size:0.9rem;font-weight:500;color:var(--green);margin-bottom:2px}
+    .tooltip-retailers{font-size:0.65rem;color:var(--muted);line-height:1.5}
 
     /* Modals */
-    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;padding:20px}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;padding:16px}
     .modal-overlay.open{display:flex}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:450px}
-    .modal h2{font-size:0.92rem;margin-bottom:16px}
-    .modal label{display:block;font-size:0.73rem;color:var(--muted);margin-bottom:4px;margin-top:12px}
-    .modal input{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.8rem;font-family:var(--font);outline:none}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:440px}
+    .modal h2{font-size:0.9rem;margin-bottom:16px}
+    .modal label{display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;margin-top:12px}
+    .modal input{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;font-family:var(--font);outline:none}
     .modal input:focus{border-color:var(--accent)}
-    .modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:20px}
-    .confirm-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:360px}
-    .confirm-modal p{font-size:0.83rem;color:var(--muted);margin-top:6px;line-height:1.5}
-    .confirm-modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:16px}
-
-    /* Rename modal */
-    .rename-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:400px}
-    .rename-modal h2{font-size:0.92rem;margin-bottom:14px}
-    .rename-modal input{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.85rem;font-family:var(--font);outline:none;margin-top:4px}
-    .rename-modal input:focus{border-color:var(--accent)}
-    .rename-modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:16px}
+    .modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:18px}
+    .sm-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:360px}
+    .sm-modal h2{font-size:0.9rem}
+    .sm-modal p{font-size:0.82rem;color:var(--muted);margin-top:6px;line-height:1.5}
+    .sm-modal-actions{display:flex;justify-content:flex-end;gap:6px;margin-top:16px}
 
     /* Pause modal */
-    .pause-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:100%;max-width:420px}
-    .pause-modal h2{font-size:0.92rem;margin-bottom:6px}
-    .pause-modal p{font-size:0.8rem;color:var(--muted);margin-bottom:16px;line-height:1.5}
+    .pause-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:400px}
+    .pause-modal h2{font-size:0.9rem;margin-bottom:6px}
+    .pause-modal p{font-size:0.78rem;color:var(--muted);margin-bottom:14px;line-height:1.5}
     .pause-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
     .pause-row:last-of-type{border-bottom:none}
     .pause-label{font-size:0.82rem}
-    .pause-sublabel{font-size:0.68rem;color:var(--muted);font-family:var(--mono)}
-    .toggle-switch{position:relative;width:38px;height:20px;flex-shrink:0}
-    .toggle-switch input{opacity:0;width:0;height:0}
-    .toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:0.2s}
-    .toggle-slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:white;border-radius:50%;transition:0.2s}
-    .toggle-switch input:checked+.toggle-slider{background:var(--green)}
-    .toggle-switch input:checked+.toggle-slider:before{transform:translateX(18px)}
-    .pause-modal-actions{display:flex;justify-content:flex-end;margin-top:16px}
+    .pause-sub{font-size:0.66rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+    .toggle-sw{position:relative;width:38px;height:20px;flex-shrink:0}
+    .toggle-sw input{opacity:0;width:0;height:0;position:absolute}
+    .toggle-sl{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.2s}
+    .toggle-sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
+    .toggle-sw input:checked+.toggle-sl{background:var(--green)}
+    .toggle-sw input:checked+.toggle-sl:before{transform:translateX(18px)}
+    .pause-modal-actions{display:flex;justify-content:flex-end;margin-top:14px}
 
     /* Toast */
-    .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.76rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity 0.2s;z-index:300}
+    .toast{position:fixed;bottom:16px;right:16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.75rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .2s;z-index:300;pointer-events:none}
     .toast.visible{opacity:1}
 
-    /* Mobile header menu */
-    .mobile-menu-btn{display:none}
-    .mobile-expand-bar{display:none;gap:8px;margin-bottom:12px}
-    @media(max-width:640px){.mobile-expand-bar{display:flex!important}}
-    .mobile-only{display:none}
-    @media(max-width:640px){.mobile-only{display:flex!important}}
-    .mobile-header-menu{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:175px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,0.5);animation:menuIn 0.1s ease}
-    .mobile-header-menu.hidden{display:none}
-    /* Hide mobile-only + button on desktop */
-    @media(min-width:641px){
-      .mobile-menu-wrap{display:none}
-      .header-right .btn-primary:last-of-type{display:none}
-    }
-    /* Responsive */
+    /* ── Mobile ── */
     @media(max-width:640px){
       header{padding:11px 14px}
+      .hdr-desktop{display:none}
+      .hdr-mobile{display:flex}
       main{padding:10px}
-      /* Hide desktop-only header buttons */
-      .desktop-only{display:none!important}
-      /* Mobile menu button */
-      .mobile-menu-btn{display:flex!important}
-      /* Larger tap targets */
-      .card-header{padding:14px 14px;gap:10px;min-height:72px}
-      .menu-btn{width:36px;height:36px;font-size:1.1rem}
-      .collapse-arrow{font-size:0.9rem;padding:6px}
-      .price-current{font-size:1.1rem}
-      .price-vs{font-size:0.62rem}
+      .card-header{padding:13px 13px;min-height:70px}
       .product-image,.product-image-placeholder{width:46px;height:46px}
-      .product-name{font-size:0.88rem}
-      /* Graph */
-      .graph-wrap{height:110px}
-      .tf-btn{padding:5px 10px;font-size:0.7rem}
-      /* Retailer rows */
+      .product-name{font-size:0.87rem}
+      .price-current{font-size:1.05rem}
+      .price-vs{font-size:0.6rem}
+      .price-block{min-width:70px}
+      .menu-btn{width:34px;height:34px;font-size:1.1rem}
+      .collapse-arrow{font-size:0.8rem;padding:6px}
+      .menu-item{padding:12px 11px;font-size:0.84rem}
+      .tf-btn{padding:6px 11px;font-size:0.7rem}
+      .graph-wrap{height:115px}
       .retailer-row{padding:9px 11px}
-      .retailer-name a{font-size:0.85rem}
-      .retailer-price{font-size:0.85rem}
-      /* Menu items larger on mobile */
-      .menu-item{padding:12px 12px;font-size:0.85rem}
-      /* Card menu wider on mobile */
-      .card-menu{min-width:190px}
+      .retailer-name a{font-size:0.84rem}
     }
   </style>
 </head>
@@ -261,7 +240,7 @@
       </div>
     </div>
     <div class="header-right">
-      <div class="status-wrap" onclick="event.stopPropagation();toggleStatusTip()">
+      <div class="status-wrap">
         <div class="status-dot green" id="status-dot"></div>
         <span class="status-text" id="status-text">Live</span>
         <div class="status-tooltip">
@@ -270,20 +249,23 @@
           <div class="dot-row"><div class="mini-dot" style="background:var(--red)"></div>Outdated — over 14 hrs old</div>
         </div>
       </div>
-      <button class="btn btn-secondary desktop-only" onclick="toggleAll(true)">Expand All</button>
-      <button class="btn btn-secondary desktop-only" onclick="toggleAll(false)">Collapse All</button>
-      <button class="btn btn-secondary desktop-only" onclick="loadData()">↻ Reload Data</button>
-      <button class="btn btn-pause desktop-only" onclick="openPauseModal()">⏸ Pause</button>
-      <button class="btn btn-primary desktop-only" onclick="openAddBucket()">+ Add Product</button>
-      <!-- Mobile condensed controls -->
-      <button class="btn btn-primary mobile-only" onclick="openAddBucket()">+</button>
-      <div class="mobile-menu-wrap" style="position:relative">
-        <button class="btn btn-secondary mobile-menu-btn" style="display:none" onclick="toggleMobileMenu()" id="mobile-header-btn">☰</button>
-        <div class="mobile-header-menu hidden" id="mobile-header-menu">
-          <div class="menu-item" onclick="toggleAll(true);closeMobileMenu()">Expand All</div>
-          <div class="menu-item" onclick="toggleAll(false);closeMobileMenu()">Collapse All</div>
-          <div class="menu-item" onclick="loadData();closeMobileMenu()">↻ Reload Data</div>
-          <div class="menu-item" onclick="openPauseModal();closeMobileMenu()">⏸ Pause Tracking</div>
+      <!-- Desktop buttons -->
+      <div class="hdr-desktop">
+        <button class="btn btn-secondary" id="toggle-all-btn" onclick="smartToggleAll()">Collapse All</button>
+        <button class="btn btn-secondary" onclick="loadData()">↻ Reload</button>
+        <button class="btn btn-pause" onclick="openPauseModal()">⏸ Pause</button>
+        <button class="btn btn-primary" onclick="openAddBucket()">+ Add Product</button>
+      </div>
+      <!-- Mobile buttons -->
+      <div class="hdr-mobile">
+        <button class="btn btn-primary" onclick="openAddBucket()">+</button>
+        <div style="position:relative">
+          <button class="btn btn-secondary" id="mobile-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
+          <div class="mobile-dropdown hidden" id="mobile-dropdown">
+            <div class="menu-item" onclick="smartToggleAll();closeMobileMenu()">Toggle All</div>
+            <div class="menu-item" onclick="loadData();closeMobileMenu()">↻ Reload</div>
+            <div class="menu-item" onclick="openPauseModal();closeMobileMenu()">⏸ Pause Tracking</div>
+          </div>
         </div>
       </div>
     </div>
@@ -291,21 +273,17 @@
 </header>
 
 <div class="reorder-banner" id="reorder-banner">
-  ☰ Reorder mode active — drag cards to rearrange &nbsp;·&nbsp;
+  ☰ Reorder mode — drag cards to rearrange &nbsp;·&nbsp;
   <a href="#" onclick="exitReorder();return false" style="color:var(--accent)">Done</a>
 </div>
 
 <main>
-  <div class="mobile-expand-bar" id="mobile-expand-bar" style="display:none">
-    <button class="btn btn-secondary" style="flex:1" onclick="toggleAll(true)">Expand All</button>
-    <button class="btn btn-secondary" style="flex:1" onclick="toggleAll(false)">Collapse All</button>
-  </div>
   <div id="loading">Fetching price data...</div>
   <div id="error-state" style="display:none"></div>
   <div id="products-grid" class="products-grid" style="display:none"></div>
 </main>
 
-<!-- Add Product Modal -->
+<!-- Add Product -->
 <div class="modal-overlay" id="add-bucket-modal">
   <div class="modal">
     <h2>Add New Product</h2>
@@ -322,53 +300,53 @@
   </div>
 </div>
 
-<!-- Rename Modal -->
+<!-- Rename -->
 <div class="modal-overlay" id="rename-modal">
-  <div class="rename-modal">
+  <div class="sm-modal">
     <h2>Rename Product</h2>
-    <input id="rename-input" type="text" placeholder="Product name"/>
-    <div class="rename-modal-actions">
+    <input id="rename-input" type="text" style="width:100%;margin-top:12px;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.85rem;font-family:var(--font);outline:none"/>
+    <div class="sm-modal-actions">
       <button class="btn btn-secondary" onclick="closeRename()">Cancel</button>
       <button class="btn btn-primary" onclick="confirmRename()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Confirm Modal -->
+<!-- Confirm -->
 <div class="modal-overlay" id="confirm-modal">
-  <div class="confirm-modal">
+  <div class="sm-modal">
     <h2 id="confirm-title">Are you sure?</h2>
     <p id="confirm-message"></p>
-    <div class="confirm-modal-actions">
+    <div class="sm-modal-actions">
       <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" id="confirm-action-btn">Delete</button>
+      <button class="btn btn-danger" id="confirm-btn">Delete</button>
     </div>
   </div>
 </div>
 
-<!-- Pause Modal -->
+<!-- Pause -->
 <div class="modal-overlay" id="pause-modal">
   <div class="pause-modal">
     <h2>Pause / Resume Tracking</h2>
-    <p>Toggle workflows on or off. Changes take effect immediately in GitHub Actions.</p>
+    <p>Toggle workflows on or off in GitHub Actions.</p>
     <div class="pause-row">
       <div>
         <div class="pause-label">Hourly Price Scraper</div>
-        <div class="pause-sublabel">Runs 5 AM – 9 PM Eastern daily</div>
+        <div class="pause-sub">5 AM – 9 PM Eastern daily</div>
       </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="toggle-normal" checked onchange="toggleWorkflow('price_tracker.yml', this.checked)"/>
-        <span class="toggle-slider"></span>
+      <label class="toggle-sw">
+        <input type="checkbox" id="toggle-normal" checked onchange="toggleWorkflow(this.checked)"/>
+        <span class="toggle-sl"></span>
       </label>
     </div>
     <div class="pause-row">
       <div>
         <div class="pause-label">Weekly Summary Email</div>
-        <div class="pause-sublabel">Runs Sunday 9:30 PM Eastern</div>
+        <div class="pause-sub">Sundays 9:30 PM Eastern</div>
       </div>
-      <label class="toggle-switch">
-        <input type="checkbox" id="toggle-weekly" checked onchange="toggleWorkflow('price_tracker.yml', this.checked, true)"/>
-        <span class="toggle-slider"></span>
+      <label class="toggle-sw">
+        <input type="checkbox" id="toggle-weekly" checked onchange="toggleWorkflow(this.checked, true)"/>
+        <span class="toggle-sl"></span>
       </label>
     </div>
     <div class="pause-modal-actions">
@@ -381,594 +359,614 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const GITHUB_USER='Hafoozi',GITHUB_REPO='price-tracker',GITHUB_BRANCH='main';
-const CSV_URL=`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/price_history.csv`;
-const CONFIG_URL=`https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/config.json`;
-const API_BASE=`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}`;
-const ET_OFFSET=-5; // Eastern Standard; adjust to -4 for EDT if needed
+const GITHUB_USER='Hafoozi', GITHUB_REPO='price-tracker', GITHUB_BRANCH='main';
+const CSV_URL    = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/price_history.csv`;
+const CONFIG_URL = `https://raw.githubusercontent.com/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/config.json`;
+const API_BASE   = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}`;
 
-let GH_TOKEN=localStorage.getItem('gh_token')||'';
-let allRows=[],config=null,charts={},confirmCallback=null;
-let collapseState={},reorderMode=false,renameIdx=-1;
+let GH_TOKEN = localStorage.getItem('gh_token') || '';
+let allRows = [], config = null, charts = {}, confirmCb = null;
+let collapseState = {}, reorderMode = false, renameIdx = -1;
+let activeMenuEl = null;
 
-function getToken(){
-  if(!GH_TOKEN){GH_TOKEN=prompt('Enter GitHub Personal Access Token:');if(GH_TOKEN)localStorage.setItem('gh_token',GH_TOKEN);}
+// ── Token ─────────────────────────────────────────────────────────────────────
+function getToken() {
+  if (!GH_TOKEN) {
+    GH_TOKEN = prompt('Enter GitHub Personal Access Token:');
+    if (GH_TOKEN) localStorage.setItem('gh_token', GH_TOKEN);
+  }
   return GH_TOKEN;
 }
 
-// ── Timezone helper ───────────────────────────────────────────────────────────
-function toET(date){
-  // Use Intl to properly handle EST/EDT automatically
-  return date.toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
-}
-
-function toETShort(date){
-  return date.toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+// ── ET timestamp ──────────────────────────────────────────────────────────────
+function toET(d) {
+  return d.toLocaleString('en-US', {timeZone:'America/New_York', month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit'});
 }
 
 // ── Status dot ────────────────────────────────────────────────────────────────
-function updateStatusDot(rows){
-  if(!rows.length)return;
-  const latest=new Date(Math.max(...rows.map(r=>r.timestamp)));
-  const ageHrs=(Date.now()-latest)/3600000;
-  const dot=document.getElementById('status-dot');
-  const txt=document.getElementById('status-text');
-  dot.className='status-dot '+(ageHrs<2?'green':ageHrs<14?'yellow':'red');
-  txt.textContent=ageHrs<2?'Live':ageHrs<14?'Stale':'Outdated';
+function updateStatus(rows) {
+  if (!rows.length) return;
+  const age = (Date.now() - Math.max(...rows.map(r => r.timestamp))) / 3600000;
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  dot.className = 'status-dot ' + (age < 2 ? 'green' : age < 14 ? 'yellow' : 'red');
+  txt.textContent = age < 2 ? 'Live' : age < 14 ? 'Stale' : 'Outdated';
 }
 
 // ── Load data ─────────────────────────────────────────────────────────────────
-async function loadData(){
-  document.getElementById('loading').style.display='block';
-  document.getElementById('error-state').style.display='none';
-  document.getElementById('products-grid').style.display='none';
-  document.getElementById('header-error').style.display='none';
-
-  try{
-    const[csvRes,cfgRes]=await Promise.all([
-      fetch(CSV_URL+'?t='+Date.now()),
-      fetch(CONFIG_URL+'?t='+Date.now())
+async function loadData() {
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('error-state').style.display = 'none';
+  document.getElementById('products-grid').style.display = 'none';
+  document.getElementById('header-error').style.display = 'none';
+  try {
+    const [csvRes, cfgRes] = await Promise.all([
+      fetch(CSV_URL + '?t=' + Date.now()),
+      fetch(CONFIG_URL + '?t=' + Date.now())
     ]);
-    if(!csvRes.ok)throw new Error('CSV fetch failed ('+csvRes.status+')');
-    if(!cfgRes.ok)throw new Error('Config fetch failed ('+cfgRes.status+')');
+    if (!csvRes.ok) throw new Error('CSV ' + csvRes.status);
+    if (!cfgRes.ok) throw new Error('Config ' + cfgRes.status);
 
-    const csvText=await csvRes.text();
-    config=await cfgRes.json();
+    const csvText = await csvRes.text();
+    config = await cfgRes.json();
 
-    const parsed=Papa.parse(csvText,{header:true,skipEmptyLines:true});
-    allRows=parsed.data
-      .filter(r=>r.name&&r.price&&r.timestamp)
-      .map(r=>({
-        timestamp:new Date(r.timestamp),
-        name:r.name.trim(),
-        price:parseFloat(r.price),
-        url:(r.url||'').trim(),
-        image:(r.image||'').trim()
+    const parsed = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+    allRows = parsed.data
+      .filter(r => r.name && r.price && r.timestamp)
+      .map(r => ({
+        timestamp: new Date(r.timestamp),
+        name:  r.name.trim(),
+        price: parseFloat(r.price),
+        url:   (r.url   || '').trim(),
+        image: (r.image || '').trim()
       }))
-      .filter(r=>!isNaN(r.price));
+      .filter(r => !isNaN(r.price));
 
-    // Last updated — current config rows only, Eastern time
-    const configNames=new Set(config.buckets.flatMap(b=>b.retailers.map(r=>`${b.label} - ${r.name}`)));
-    const currentRows=allRows.filter(r=>configNames.has(r.name));
-    const latestTs=currentRows.length
-      ?new Date(Math.max(...currentRows.map(r=>r.timestamp)))
-      :new Date(Math.max(...allRows.map(r=>r.timestamp)));
+    const configNames = new Set(config.buckets.flatMap(b => b.retailers.map(r => `${b.label} - ${r.name}`)));
+    const cur = allRows.filter(r => configNames.has(r.name));
+    const latest = cur.length ? new Date(Math.max(...cur.map(r => r.timestamp))) : new Date(Math.max(...allRows.map(r => r.timestamp)));
+    document.getElementById('last-updated').textContent = 'Last updated: ' + toET(latest);
 
-    document.getElementById('last-updated').textContent='Last updated: '+toET(latestTs);
+    // Error check
+    if (cur.length) {
+      const latestTs = Math.max(...cur.map(r => r.timestamp));
+      const missing = [...configNames].filter(n => !cur.some(r => r.name === n && Math.abs(r.timestamp - latestTs) < 7200000));
+      if (missing.length) {
+        const el = document.getElementById('header-error');
+        el.style.display = 'inline';
+        el.textContent = `· ⚠ ${missing.length} retailer${missing.length > 1 ? 's' : ''} failed last run`;
+      }
+    }
 
-    // Check for scrape errors in latest run
-    checkForErrors(currentRows,configNames);
-    updateStatusDot(allRows);
+    updateStatus(allRows);
     renderDashboard();
-  }catch(e){
-    document.getElementById('loading').style.display='none';
-    const el=document.getElementById('error-state');
-    el.style.display='block';el.textContent='⚠ '+e.message;
-  }
-}
-
-// ── Error detection ───────────────────────────────────────────────────────────
-function checkForErrors(rows,configNames){
-  // Find the latest timestamp in the dataset
-  if(!rows.length)return;
-  const latestTs=new Date(Math.max(...rows.map(r=>r.timestamp)));
-  const window=2*3600000; // 2 hour window for "latest run"
-  const latestRun=rows.filter(r=>(latestTs-r.timestamp)<window);
-  const latestNames=new Set(latestRun.map(r=>r.name));
-  const failed=[...configNames].filter(n=>!latestNames.has(n));
-
-  if(failed.length){
-    const el=document.getElementById('header-error');
-    el.style.display='inline';
-    el.textContent=`· ⚠ ${failed.length} retailer${failed.length>1?'s':''} failed last run`;
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    const el = document.getElementById('error-state');
+    el.style.display = 'block'; el.textContent = '⚠ ' + e.message;
   }
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function renderDashboard(){
-  const grid=document.getElementById('products-grid');
-  grid.innerHTML='';
-  Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
-  const isMobile=window.innerWidth<=640;
-  config.buckets.forEach((b,i)=>grid.appendChild(buildCard(b,i,collapseState[i]!==undefined?collapseState[i]!==false:!isMobile)));
-  document.getElementById('loading').style.display='none';
-  grid.style.display='grid';
-  if(window.innerWidth<=640)document.getElementById('mobile-expand-bar').style.display='flex';
-  if(reorderMode)grid.classList.add('reorder-mode');
-  config.buckets.forEach((b,i)=>{if(collapseState[i]!==false)drawChart(b,i,'all');});
+function renderDashboard() {
+  const grid = document.getElementById('products-grid');
+  grid.innerHTML = '';
+  Object.values(charts).forEach(c => c && c.destroy && c.destroy()); charts = {};
+
+  const isMobile = window.innerWidth <= 640;
+  config.buckets.forEach((b, i) => {
+    const open = collapseState[i] !== undefined ? collapseState[i] : !isMobile;
+    grid.appendChild(buildCard(b, i, open));
+  });
+
+  document.getElementById('loading').style.display = 'none';
+  grid.style.display = 'grid';
+  if (reorderMode) grid.classList.add('reorder-mode');
+
+  config.buckets.forEach((b, i) => { if (collapseState[i] !== undefined ? collapseState[i] : !isMobile) drawChart(b, i, 'all'); });
+  updateToggleAllBtn();
   initDrag();
-  closeAllMenus();
 }
 
-// ── Data helpers ──────────────────────────────────────────────────────────────
-function getRetailerData(bucket){
-  // Find latest run timestamp for error detection
-  const allBucketRows=allRows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
-  const latestTs=allBucketRows.length?new Date(Math.max(...allBucketRows.map(r=>r.timestamp))):null;
+// ── Toggle all (smart) ────────────────────────────────────────────────────────
+function smartToggleAll() {
+  const anyOpen = config.buckets.some((_, i) => {
+    const card = document.querySelector(`.product-card[data-idx="${i}"]`);
+    return card && card.querySelector('.card-body').classList.contains('open');
+  });
+  const open = !anyOpen;
+  config.buckets.forEach((_, i) => {
+    const card = document.querySelector(`.product-card[data-idx="${i}"]`);
+    if (!card) return;
+    const body = card.querySelector('.card-body');
+    const arrow = card.querySelector('.collapse-arrow');
+    if (open) { body.classList.add('open'); arrow.classList.add('open'); collapseState[i] = true; setTimeout(() => drawChart(config.buckets[i], i, getTf(i)), 60); }
+    else { body.classList.remove('open'); arrow.classList.remove('open'); collapseState[i] = false; }
+  });
+  updateToggleAllBtn();
+}
 
-  return bucket.retailers.map(r=>{
-    const name=`${bucket.label} - ${r.name}`;
-    const rows=allRows.filter(row=>row.name===name);
-    const latest=rows.length?rows.reduce((a,b)=>a.timestamp>b.timestamp?a:b):null;
+function updateToggleAllBtn() {
+  const anyOpen = config.buckets.some((_, i) => {
+    const card = document.querySelector(`.product-card[data-idx="${i}"]`);
+    return card && card.querySelector('.card-body').classList.contains('open');
+  });
+  const btn = document.getElementById('toggle-all-btn');
+  if (btn) btn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+}
 
-    // Error = had data before but missing from latest run
-    const inLatestRun=latestTs&&rows.some(row=>Math.abs(row.timestamp-latestTs)<2*3600000);
-    const hadDataBefore=rows.length>0;
-    const isError=hadDataBefore&&latestTs&&!inLatestRun;
+// ── Retailer data ─────────────────────────────────────────────────────────────
+function getRetailerData(bucket) {
+  const bucketRows = allRows.filter(r => bucket.retailers.some(ret => r.name === `${bucket.label} - ${ret.name}`));
+  const latestTs = bucketRows.length ? Math.max(...bucketRows.map(r => r.timestamp)) : null;
 
-    return{name:r.name,url:r.url,price:latest?.price??null,image:latest?.image??'',failed:!latest,isError};
+  return bucket.retailers.map(r => {
+    const name = `${bucket.label} - ${r.name}`;
+    const rows = allRows.filter(row => row.name === name);
+    const latest = rows.length ? rows.reduce((a, b) => a.timestamp > b.timestamp ? a : b) : null;
+    const inLatest = latestTs && rows.some(row => Math.abs(row.timestamp - latestTs) < 7200000);
+    const isError = rows.length > 0 && latestTs && !inLatest;
+    return { name: r.name, url: r.url, price: latest?.price ?? null, image: latest?.image ?? '', failed: !latest, isError };
   });
 }
 
-function getAvgPrice(bucket){
-  const rows=allRows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
-  if(!rows.length)return null;
-  const byDate={};
-  rows.forEach(r=>{const d=r.timestamp.toISOString().slice(0,10);if(!byDate[d])byDate[d]=[];byDate[d].push(r.price);});
-  const lows=Object.values(byDate).map(p=>Math.min(...p));
-  return lows.reduce((a,b)=>a+b,0)/lows.length;
+function getAvgPrice(bucket) {
+  const rows = allRows.filter(r => bucket.retailers.some(ret => r.name === `${bucket.label} - ${ret.name}`));
+  if (rows.length < 6) return null; // need enough history
+  const byDate = {};
+  rows.forEach(r => { const d = r.timestamp.toISOString().slice(0,10); if (!byDate[d]) byDate[d] = []; byDate[d].push(r.price); });
+  const lows = Object.values(byDate).map(p => Math.min(...p));
+  return lows.reduce((a, b) => a + b, 0) / lows.length;
 }
 
 // ── Build card ────────────────────────────────────────────────────────────────
-function buildCard(bucket,idx,isOpen){
-  const retailers=getRetailerData(bucket);
-  const prices=retailers.filter(r=>r.price!==null).map(r=>r.price);
-  const bestPrice=prices.length?Math.min(...prices):null;
-  const hasWarning=retailers.some(r=>r.failed||r.isError);
-  const image=retailers.find(r=>r.image)?.image||'';
-  const avg=getAvgPrice(bucket);
-  const hasEnoughHistory=allRows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`)).length>5;
+function buildCard(bucket, idx, isOpen) {
+  const retailers = getRetailerData(bucket);
+  const prices    = retailers.filter(r => r.price !== null).map(r => r.price);
+  const bestPrice = prices.length ? Math.min(...prices) : null;
+  const hasWarning = retailers.some(r => r.failed || r.isError);
+  const image     = retailers.find(r => r.image)?.image || '';
+  const avg       = getAvgPrice(bucket);
 
-  let vsHtml='';
-  if(bestPrice!==null&&avg!==null&&hasEnoughHistory){
-    const pct=((avg-bestPrice)/avg*100);
-    if(Math.abs(pct)<1)vsHtml=`<div class="price-vs neutral">≈ near avg ($${avg.toFixed(0)})</div>`;
-    else if(bestPrice<avg)vsHtml=`<div class="price-vs below">↓ ${Math.abs(pct).toFixed(1)}% below avg ($${avg.toFixed(0)})</div>`;
-    else vsHtml=`<div class="price-vs above">↑ ${Math.abs(pct).toFixed(1)}% above avg ($${avg.toFixed(0)})</div>`;
+  // Price vs avg
+  let vsHtml = '';
+  if (bestPrice !== null && avg !== null) {
+    const pct = ((avg - bestPrice) / avg * 100);
+    const diff = Math.abs(avg - bestPrice).toFixed(0);
+    if (Math.abs(pct) < 1) {
+      vsHtml = `<div class="price-vs neutral">≈ near avg ($${avg.toFixed(0)})</div>`;
+    } else if (bestPrice < avg) {
+      vsHtml = `<div class="price-vs below">↓ ${Math.abs(pct).toFixed(1)}% · $${diff} below avg</div>`;
+    } else {
+      vsHtml = `<div class="price-vs above">↑ ${Math.abs(pct).toFixed(1)}% · $${diff} above avg</div>`;
+    }
   }
 
-  const imgHtml=image
-    ?`<img class="product-image" src="${image}" alt="${bucket.label}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="product-image-placeholder" style="display:none">🛍</div>`
-    :`<div class="product-image-placeholder">🛍</div>`;
+  const imgHtml = image
+    ? `<img class="product-image" src="${image}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="product-image-placeholder" style="display:none">🛍</div>`
+    : `<div class="product-image-placeholder">🛍</div>`;
 
-  const card=document.createElement('div');
-  card.className='product-card';card.dataset.idx=idx;card.draggable=false;
-  card.style.animationDelay=(idx*0.05)+'s';
+  const card = document.createElement('div');
+  card.className = 'product-card';
+  card.dataset.idx = idx;
+  card.draggable = false;
+  card.style.animationDelay = (idx * 0.05) + 's';
 
   // Header
-  const header=document.createElement('div');
-  header.className='card-header';
-  header.innerHTML=`
-    <div class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()"><span></span><span></span><span></span></div>
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  header.innerHTML = `
+    <div class="drag-handle" onclick="event.stopPropagation()"><span></span><span></span><span></span></div>
     ${imgHtml}
     <div class="card-header-info">
       <div class="product-name">${bucket.label}</div>
       <div class="product-sub">
-        <span class="retailer-count">${retailers.length} retailer${retailers.length!==1?'s':''}</span>
-        ${hasWarning?`<span class="warning-icon" title="One or more retailers had issues">⚠</span>`:''}
+        <span class="retailer-count">${retailers.length} retailer${retailers.length !== 1 ? 's' : ''}</span>
+        ${hasWarning ? '<span class="warning-badge" title="One or more retailers had issues">⚠</span>' : ''}
       </div>
     </div>
     <div class="card-header-right">
       <div class="price-block">
-        <div class="price-current ${bestPrice===null?'no-price':''}">${bestPrice!==null?'$'+bestPrice.toFixed(2):'—'}</div>
+        <div class="price-current ${bestPrice === null ? 'no-price' : ''}">${bestPrice !== null ? '$' + bestPrice.toFixed(2) : '—'}</div>
         ${vsHtml}
       </div>
       <div class="menu-wrap">
-        <button class="menu-btn" onclick="event.stopPropagation();toggleMenu(${idx})" title="Options">⋯</button>
-        <div class="card-menu hidden" id="menu-${idx}">
-          <div class="menu-item" onclick="openRename(${idx})">Rename Product</div>
-          <div class="menu-item" onclick="enterReorder()">Reorder Cards</div>
-          <div class="menu-divider"></div>
-          <div class="menu-item danger" onclick="deleteBucket(${idx})">Delete Product</div>
-        </div>
+        <button class="menu-btn" onclick="event.stopPropagation();openCardMenu(event,${idx})" title="Options">⋯</button>
       </div>
-      <div class="collapse-arrow ${isOpen?'open':''}">▼</div>
+      <div class="collapse-arrow ${isOpen ? 'open' : ''}">▼</div>
     </div>`;
-  header.addEventListener('click',()=>toggleCard(idx));
+  header.addEventListener('click', () => toggleCard(idx));
 
   // Body
-  const body=document.createElement('div');
-  body.className='card-body'+(isOpen?' open':'');
+  const body = document.createElement('div');
+  body.className = 'card-body' + (isOpen ? ' open' : '');
 
   // Retailers
-  const retailersEl=document.createElement('div');
-  retailersEl.className='retailers';
-  retailers.forEach((r,rIdx)=>{
-    const isBest=r.price!==null&&r.price===bestPrice;
-    const row=document.createElement('div');
-    row.className='retailer-row'+(isBest?' is-best':'')+(r.failed&&!r.isError?' is-failed':'')+(r.isError?' is-error':'');
-    row.innerHTML=`
+  const retailersEl = document.createElement('div');
+  retailersEl.className = 'retailers';
+  retailers.forEach((r, rIdx) => {
+    const isBest = r.price !== null && r.price === bestPrice;
+    const row = document.createElement('div');
+    row.className = 'retailer-row' + (isBest ? ' is-best' : '') + (r.failed && !r.isError ? ' is-failed' : '') + (r.isError ? ' is-error' : '');
+    row.innerHTML = `
       <div class="retailer-info">
         <div class="retailer-name"><a href="${r.url}" target="_blank">${r.name}</a></div>
-        ${isBest?'<span class="tag tag-best">Best</span>':''}
-        ${r.failed&&!r.isError?'<span class="tag tag-failed">No Data</span>':''}
-        ${r.isError?'<span class="tag tag-error">Failed</span>':''}
+        ${isBest ? '<span class="tag tag-best">Best</span>' : ''}
+        ${r.failed && !r.isError ? '<span class="tag tag-failed">No Data</span>' : ''}
+        ${r.isError ? '<span class="tag tag-error">Failed</span>' : ''}
       </div>
-      <div class="retailer-price ${isBest?'is-best':''} ${r.price===null?'is-unavailable':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
+      <div class="retailer-price ${isBest ? 'is-best' : ''} ${r.price === null ? 'is-unavailable' : ''}">${r.price !== null ? '$' + r.price.toFixed(2) : 'unavailable'}</div>`;
     retailersEl.appendChild(row);
   });
 
   // Add retailer
-  const addRow=document.createElement('div');
-  addRow.className='add-retailer-row';
-  addRow.innerHTML=`
+  const addRow = document.createElement('div');
+  addRow.className = 'add-retailer-row';
+  addRow.innerHTML = `
     <button class="btn-add-retailer" onclick="toggleAddRetailer(this)">+ Add retailer</button>
     <div class="add-retailer-form">
-      <input type="text" placeholder="Retailer name" class="retailer-name-input"/>
-      <input type="url" placeholder="Product URL" class="retailer-url-input"/>
-      <button class="btn btn-primary" style="font-size:0.73rem;padding:5px 10px" onclick="confirmAddRetailer(this,${idx})">Add</button>
-      <button class="btn btn-secondary" style="font-size:0.73rem;padding:5px 10px" onclick="toggleAddRetailer(this.parentElement.previousElementSibling)">Cancel</button>
+      <input type="text" placeholder="Retailer name" class="ri-name"/>
+      <input type="url" placeholder="Product URL" class="ri-url"/>
+      <button class="btn btn-primary" style="font-size:.73rem;padding:5px 10px" onclick="confirmAddRetailer(this,${idx})">Add</button>
+      <button class="btn btn-secondary" style="font-size:.73rem;padding:5px 10px" onclick="toggleAddRetailer(this.parentElement.previousElementSibling)">Cancel</button>
     </div>`;
 
   // Graph
-  const graphSection=document.createElement('div');
-  graphSection.className='graph-section';
-  graphSection.innerHTML=`
+  const graphEl = document.createElement('div');
+  graphEl.className = 'graph-section';
+  graphEl.innerHTML = `
     <div class="graph-controls">
-      <div class="graph-title">Price History — Lowest Daily Price</div>
+      <div class="graph-title">Price History — Lowest Daily</div>
       <div class="timeframe-btns">
-        <button class="tf-btn active" onclick="changeTimeframe(this,${idx},'all')">All</button>
-        <button class="tf-btn" onclick="changeTimeframe(this,${idx},'30d')">30D</button>
-        <button class="tf-btn" onclick="changeTimeframe(this,${idx},'14d')">14D</button>
-        <button class="tf-btn" onclick="changeTimeframe(this,${idx},'7d')">7D</button>
+        <button class="tf-btn active" onclick="changeTf(this,${idx},'all')">All</button>
+        <button class="tf-btn" onclick="changeTf(this,${idx},'30d')">30D</button>
+        <button class="tf-btn" onclick="changeTf(this,${idx},'14d')">14D</button>
+        <button class="tf-btn" onclick="changeTf(this,${idx},'7d')">7D</button>
       </div>
     </div>
     <div class="graph-wrap"><canvas id="chart-${idx}"></canvas></div>`;
 
-  body.appendChild(retailersEl);body.appendChild(addRow);body.appendChild(graphSection);
-  card.appendChild(header);card.appendChild(body);
+  body.appendChild(retailersEl); body.appendChild(addRow); body.appendChild(graphEl);
+  card.appendChild(header); card.appendChild(body);
   return card;
 }
 
-// ── Expand / Collapse ─────────────────────────────────────────────────────────
-function toggleCard(idx){
-  const card=document.querySelector(`.product-card[data-idx="${idx}"]`);if(!card)return;
-  const body=card.querySelector('.card-body');
-  const arrow=card.querySelector('.collapse-arrow');
-  const isOpen=body.classList.contains('open');
-  if(isOpen){body.classList.remove('open');arrow.classList.remove('open');collapseState[idx]=false;}
-  else{body.classList.add('open');arrow.classList.add('open');collapseState[idx]=true;setTimeout(()=>drawChart(config.buckets[idx],idx,getTf(idx)),50);}
+// ── Toggle card ───────────────────────────────────────────────────────────────
+function toggleCard(idx) {
+  const card = document.querySelector(`.product-card[data-idx="${idx}"]`); if (!card) return;
+  const body  = card.querySelector('.card-body');
+  const arrow = card.querySelector('.collapse-arrow');
+  const willOpen = !body.classList.contains('open');
+  if (willOpen) { body.classList.add('open'); arrow.classList.add('open'); collapseState[idx] = true; setTimeout(() => drawChart(config.buckets[idx], idx, getTf(idx)), 50); }
+  else          { body.classList.remove('open'); arrow.classList.remove('open'); collapseState[idx] = false; }
+  updateToggleAllBtn();
 }
-function toggleAll(open){
-  config.buckets.forEach((_,idx)=>{
-    const card=document.querySelector(`.product-card[data-idx="${idx}"]`);if(!card)return;
-    const body=card.querySelector('.card-body');const arrow=card.querySelector('.collapse-arrow');
-    if(open){body.classList.add('open');arrow.classList.add('open');collapseState[idx]=true;setTimeout(()=>drawChart(config.buckets[idx],idx,getTf(idx)),60);}
-    else{body.classList.remove('open');arrow.classList.remove('open');collapseState[idx]=false;}
-  });
-}
-function getTf(idx){return document.querySelector(`#chart-${idx}`)?.closest('.graph-section')?.querySelector('.tf-btn.active')?.textContent.toLowerCase()||'all';}
 
-// ── Menu ──────────────────────────────────────────────────────────────────────
-function toggleMenu(idx){
-  const menu=document.getElementById(`menu-${idx}`);
-  const hidden=menu.classList.contains('hidden');
-  closeAllMenus();
-  if(hidden){
-    // Position menu using fixed coords from button
-    const btn=document.querySelector(`#menu-${idx}`).previousElementSibling;
-    const rect=btn.getBoundingClientRect();
-    menu.style.top=(rect.bottom+6)+'px';
-    menu.style.right=(window.innerWidth-rect.right)+'px';
-    menu.classList.remove('hidden');
-  }
+function getTf(idx) {
+  return document.querySelector(`#chart-${idx}`)?.closest('.graph-section')?.querySelector('.tf-btn.active')?.textContent.toLowerCase() || 'all';
 }
-function toggleStatusTip(){
-  const tip=document.querySelector('.status-tooltip');
-  const isVisible=tip.classList.contains('visible');
-  closeAllMenus();
-  if(!isVisible)tip.classList.add('visible');
-}
-function closeAllMenus(){document.querySelectorAll('.card-menu,.mobile-header-menu').forEach(m=>m.classList.add('hidden'));document.getElementById('tooltip')?.classList.remove('visible');}
-document.addEventListener('click',closeAllMenus);
 
-// ── Rename ────────────────────────────────────────────────────────────────────
-function openRename(idx){
+// ── Card menu — uses fixed positioning to escape overflow:hidden ──────────────
+function openCardMenu(e, idx) {
+  e.stopPropagation();
   closeAllMenus();
-  renameIdx=idx;
-  document.getElementById('rename-input').value=config.buckets[idx].label;
-  document.getElementById('rename-modal').classList.add('open');
-  setTimeout(()=>document.getElementById('rename-input').select(),50);
+
+  const btn = e.currentTarget;
+  const rect = btn.getBoundingClientRect();
+
+  // Build menu
+  const menu = document.createElement('div');
+  menu.className = 'card-menu';
+  menu.id = 'active-card-menu';
+  menu.innerHTML = `
+    <div class="menu-item" onclick="openRename(${idx});closeAllMenus()">Rename Product</div>
+    <div class="menu-item" onclick="enterReorder();closeAllMenus()">Reorder Cards</div>
+    <div class="menu-divider"></div>
+    <div class="menu-item danger" onclick="deleteBucket(${idx});closeAllMenus()">Delete Product</div>`;
+
+  document.body.appendChild(menu);
+  activeMenuEl = menu;
+
+  // Position: below button, right-aligned
+  const menuW = 170;
+  const left = Math.min(rect.right - menuW, window.innerWidth - menuW - 8);
+  menu.style.top  = (rect.bottom + 6) + 'px';
+  menu.style.left = Math.max(8, left) + 'px';
 }
-function closeRename(){document.getElementById('rename-modal').classList.remove('open');renameIdx=-1;}
-async function confirmRename(){
-  const newName=document.getElementById('rename-input').value.trim();
-  if(!newName||renameIdx<0){closeRename();return;}
-  config.buckets[renameIdx].label=newName;
-  closeRename();
-  await saveConfig('Rename product: '+newName);
+
+function closeAllMenus() {
+  document.getElementById('active-card-menu')?.remove();
+  activeMenuEl = null;
+  document.getElementById('mobile-dropdown')?.classList.add('hidden');
 }
-document.getElementById('rename-input').addEventListener('keydown',e=>{
-  if(e.key==='Enter')confirmRename();
-  if(e.key==='Escape')closeRename();
-});
+document.addEventListener('click', e => { if (activeMenuEl && !activeMenuEl.contains(e.target)) closeAllMenus(); });
+
+// ── Mobile header menu ────────────────────────────────────────────────────────
+function toggleMobileMenu(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('mobile-dropdown');
+  dd.classList.toggle('hidden');
+}
+function closeMobileMenu() { document.getElementById('mobile-dropdown')?.classList.add('hidden'); }
 
 // ── Reorder ───────────────────────────────────────────────────────────────────
-function enterReorder(){
-  closeAllMenus();reorderMode=true;
+function enterReorder() {
+  reorderMode = true;
   document.getElementById('reorder-banner').classList.add('active');
-  document.querySelectorAll('.product-card').forEach(c=>c.draggable=true);
+  document.querySelectorAll('.product-card').forEach(c => c.draggable = true);
   document.getElementById('products-grid').classList.add('reorder-mode');
 }
-function exitReorder(){
-  reorderMode=false;
+function exitReorder() {
+  reorderMode = false;
   document.getElementById('reorder-banner').classList.remove('active');
-  document.querySelectorAll('.product-card').forEach(c=>c.draggable=false);
+  document.querySelectorAll('.product-card').forEach(c => c.draggable = false);
   document.getElementById('products-grid').classList.remove('reorder-mode');
 }
 
-// ── Drag and drop ─────────────────────────────────────────────────────────────
-function initDrag(){
-  const grid=document.getElementById('products-grid');let dragSrc=null;
-  grid.querySelectorAll('.product-card').forEach(card=>{
-    card.addEventListener('dragstart',e=>{if(!reorderMode)return;dragSrc=card;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
-    card.addEventListener('dragend',()=>{
-      card.classList.remove('dragging');
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      if(!reorderMode)return;
-      const newOrder=[...grid.querySelectorAll('.product-card')].map(c=>parseInt(c.dataset.idx));
-      config.buckets=newOrder.map(i=>config.buckets[i]);
-      grid.querySelectorAll('.product-card').forEach((c,i)=>c.dataset.idx=i);
-      saveConfig('Reorder products');
+// ── Rename ────────────────────────────────────────────────────────────────────
+function openRename(idx) {
+  renameIdx = idx;
+  document.getElementById('rename-input').value = config.buckets[idx].label;
+  document.getElementById('rename-modal').classList.add('open');
+  setTimeout(() => document.getElementById('rename-input').select(), 50);
+}
+function closeRename() { document.getElementById('rename-modal').classList.remove('open'); renameIdx = -1; }
+async function confirmRename() {
+  const n = document.getElementById('rename-input').value.trim();
+  if (!n || renameIdx < 0) { closeRename(); return; }
+  config.buckets[renameIdx].label = n;
+  closeRename();
+  await saveConfig('Rename: ' + n);
+}
+document.getElementById('rename-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') confirmRename();
+  if (e.key === 'Escape') closeRename();
+});
+
+// ── Add / Delete ──────────────────────────────────────────────────────────────
+function openAddBucket() { document.getElementById('add-bucket-modal').classList.add('open'); setTimeout(() => document.getElementById('new-bucket-label').focus(), 50); }
+function closeAddBucket() { document.getElementById('add-bucket-modal').classList.remove('open'); ['new-bucket-label','new-retailer-name','new-retailer-url'].forEach(id => document.getElementById(id).value = ''); }
+async function confirmAddBucket() {
+  const label = document.getElementById('new-bucket-label').value.trim();
+  const rName = document.getElementById('new-retailer-name').value.trim();
+  const rUrl  = document.getElementById('new-retailer-url').value.trim();
+  if (!label || !rName || !rUrl) { alert('Please fill in all fields.'); return; }
+  config.buckets.push({ label, retailers: [{ name: rName, url: rUrl }] });
+  closeAddBucket();
+  await saveConfig('Add product: ' + label);
+}
+function toggleAddRetailer(btn) { btn.nextElementSibling?.classList.toggle('open'); }
+async function confirmAddRetailer(btn, idx) {
+  const form = btn.closest('.add-retailer-form');
+  const n = form.querySelector('.ri-name').value.trim();
+  const u = form.querySelector('.ri-url').value.trim();
+  if (!n || !u) { alert('Fill in retailer name and URL.'); return; }
+  config.buckets[idx].retailers.push({ name: n, url: u });
+  await saveConfig('Add retailer ' + n);
+}
+function deleteBucket(idx) {
+  showConfirm('Delete Product?', `Remove "${config.buckets[idx].label}"? Historical data is kept.`,
+    async () => { config.buckets.splice(idx, 1); await saveConfig('Delete product'); });
+}
+
+// ── Pause ─────────────────────────────────────────────────────────────────────
+function openPauseModal()  { document.getElementById('pause-modal').classList.add('open'); }
+function closePauseModal() { document.getElementById('pause-modal').classList.remove('open'); }
+async function toggleWorkflow(enable) {
+  const token = getToken(); if (!token) { showToast('Token required.'); return; }
+  showToast(enable ? 'Resuming...' : 'Pausing...');
+  try {
+    const res = await fetch(`${API_BASE}/actions/workflows/price_tracker.yml/${enable ? 'enable' : 'disable'}`, {
+      method: 'PUT', headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' }
     });
-    card.addEventListener('dragover',e=>{if(!reorderMode)return;e.preventDefault();if(card!==dragSrc){grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');}});
-    card.addEventListener('drop',e=>{if(!reorderMode)return;e.preventDefault();if(card!==dragSrc){const cards=[...grid.querySelectorAll('.product-card')];if(cards.indexOf(dragSrc)<cards.indexOf(card))card.after(dragSrc);else card.before(dragSrc);}card.classList.remove('drag-over');});
-  });
-
-  // Touch
-  let td=null,tc=null,tox=0,toy=0;
-  grid.querySelectorAll('.drag-handle').forEach(handle=>{
-    handle.addEventListener('touchstart',e=>{
-      if(!reorderMode)return;const card=handle.closest('.product-card');td=card;
-      const rect=card.getBoundingClientRect();tox=e.touches[0].clientX-rect.left;toy=e.touches[0].clientY-rect.top;
-      tc=card.cloneNode(true);tc.style.cssText=`position:fixed;width:${rect.width}px;opacity:0.8;pointer-events:none;z-index:999;border-radius:12px;`;
-      document.body.appendChild(tc);card.style.opacity='0.3';e.preventDefault();
-    },{passive:false});
-    handle.addEventListener('touchmove',e=>{
-      if(!td||!tc)return;const t=e.touches[0];
-      tc.style.left=(t.clientX-tox)+'px';tc.style.top=(t.clientY-toy)+'px';
-      const els=document.elementsFromPoint(t.clientX,t.clientY);
-      const target=els.find(el=>el.classList.contains('product-card')&&el!==td);
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      if(target)target.classList.add('drag-over');e.preventDefault();
-    },{passive:false});
-    handle.addEventListener('touchend',e=>{
-      if(!td)return;const t=e.changedTouches[0];
-      const els=document.elementsFromPoint(t.clientX,t.clientY);
-      const target=els.find(el=>el.classList.contains('product-card')&&el!==td);
-      if(target){const cards=[...grid.querySelectorAll('.product-card')];if(cards.indexOf(td)<cards.indexOf(target))target.after(td);else target.before(td);}
-      td.style.opacity='';tc.remove();tc=null;td=null;
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      const newOrder=[...grid.querySelectorAll('.product-card')].map(c=>parseInt(c.dataset.idx));
-      config.buckets=newOrder.map(i=>config.buckets[i]);
-      grid.querySelectorAll('.product-card').forEach((c,i)=>c.dataset.idx=i);
-      saveConfig('Reorder products');
-    });
-  });
-}
-
-// ── Add / Remove ──────────────────────────────────────────────────────────────
-function openAddBucket(){document.getElementById('add-bucket-modal').classList.add('open');setTimeout(()=>document.getElementById('new-bucket-label').focus(),50);}
-function closeAddBucket(){document.getElementById('add-bucket-modal').classList.remove('open');['new-bucket-label','new-retailer-name','new-retailer-url'].forEach(id=>document.getElementById(id).value='');}
-async function confirmAddBucket(){
-  const label=document.getElementById('new-bucket-label').value.trim();
-  const rName=document.getElementById('new-retailer-name').value.trim();
-  const rUrl=document.getElementById('new-retailer-url').value.trim();
-  if(!label||!rName||!rUrl){alert('Please fill in all fields.');return;}
-  config.buckets.push({label,retailers:[{name:rName,url:rUrl}]});
-  closeAddBucket();await saveConfig('Add product: '+label);
-}
-function toggleAddRetailer(btn){btn.nextElementSibling?.classList.toggle('open');}
-async function confirmAddRetailer(btn,bucketIdx){
-  const form=btn.closest('.add-retailer-form');
-  const rName=form.querySelector('.retailer-name-input').value.trim();
-  const rUrl=form.querySelector('.retailer-url-input').value.trim();
-  if(!rName||!rUrl){alert('Fill in retailer name and URL.');return;}
-  config.buckets[bucketIdx].retailers.push({name:rName,url:rUrl});
-  await saveConfig('Add retailer '+rName);
-}
-function deleteBucket(idx){
-  closeAllMenus();
-  showConfirm('Delete Product?',`Remove "${config.buckets[idx].label}" from tracking? Historical data is kept.`,
-    async()=>{config.buckets.splice(idx,1);await saveConfig('Delete product');});
-}
-
-// ── Pause / Resume workflows ──────────────────────────────────────────────────
-function openPauseModal(){document.getElementById('pause-modal').classList.add('open');}
-function closePauseModal(){document.getElementById('pause-modal').classList.remove('open');}
-
-async function toggleWorkflow(filename,enable,weeklyOnly=false){
-  const token=getToken();if(!token){showToast('Token required.');return;}
-  showToast(enable?'Resuming...':'Pausing...');
-  const action=enable?'enable':'disable';
-  try{
-    const res=await fetch(`${API_BASE}/actions/workflows/${filename}/${action}`,{
-      method:'PUT',
-      headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}
-    });
-    if(res.status===204){showToast(enable?'Resumed ✓':'Paused ✓');}
-    else{const e=await res.json();throw new Error(e.message);}
-  }catch(e){showToast('Error: '+e.message);}
+    showToast(res.status === 204 ? (enable ? 'Resumed ✓' : 'Paused ✓') : 'Error — check token');
+  } catch(e) { showToast('Error: ' + e.message); }
 }
 
 // ── GitHub save ───────────────────────────────────────────────────────────────
-async function saveConfig(msg){
-  const token=getToken();if(!token){alert('Token required.');return;}
+async function saveConfig(msg) {
+  const token = getToken(); if (!token) { alert('Token required.'); return; }
   showToast('Saving...');
-  try{
-    const shaRes=await fetch(`${API_BASE}/contents/config.json`,{headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json'}});
-    const shaData=await shaRes.json();
-    const ghConfig={email:{sender_email:'',app_password:'',recipient_email:''},buckets:config.buckets};
-    const content=btoa(unescape(encodeURIComponent(JSON.stringify(ghConfig,null,2))));
-    const res=await fetch(`${API_BASE}/contents/config.json`,{
-      method:'PUT',
-      headers:{Authorization:`token ${token}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},
-      body:JSON.stringify({message:msg,content,sha:shaData.sha,branch:GITHUB_BRANCH})
+  try {
+    const shaRes = await fetch(`${API_BASE}/contents/config.json`, { headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json' } });
+    const sha    = (await shaRes.json()).sha;
+    const body   = { email: { sender_email:'', app_password:'', recipient_email:'' }, buckets: config.buckets };
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(body, null, 2))));
+    const res = await fetch(`${API_BASE}/contents/config.json`, {
+      method: 'PUT',
+      headers: { Authorization: `token ${token}`, Accept: 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, content, sha, branch: GITHUB_BRANCH })
     });
-    if(!res.ok){const err=await res.json();throw new Error(err.message);}
-    showToast('Saved ✓');setTimeout(()=>renderDashboard(),400);
-  }catch(e){showToast('Error: '+e.message);}
+    if (!res.ok) { const e = await res.json(); throw new Error(e.message); }
+    showToast('Saved ✓'); setTimeout(() => renderDashboard(), 400);
+  } catch(e) { showToast('Error: ' + e.message); }
 }
 
-// ── Confirm modal ─────────────────────────────────────────────────────────────
-function showConfirm(title,msg,cb){
-  document.getElementById('confirm-title').textContent=title;
-  document.getElementById('confirm-message').textContent=msg;
-  confirmCallback=cb;document.getElementById('confirm-modal').classList.add('open');
+// ── Confirm ───────────────────────────────────────────────────────────────────
+function showConfirm(title, msg, cb) {
+  document.getElementById('confirm-title').textContent   = title;
+  document.getElementById('confirm-message').textContent = msg;
+  confirmCb = cb; document.getElementById('confirm-modal').classList.add('open');
 }
-function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');confirmCallback=null;}
-document.getElementById('confirm-action-btn').onclick=async()=>{closeConfirm();if(confirmCallback)await confirmCallback();};
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); confirmCb = null; }
+document.getElementById('confirm-btn').onclick = async () => { closeConfirm(); if (confirmCb) await confirmCb(); };
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('visible');setTimeout(()=>t.classList.remove('visible'),2500);}
-
-// ── Chart ─────────────────────────────────────────────────────────────────────
-function getChartData(bucket,tf){
-  const rows=allRows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
-  if(!rows.length)return{labels:[],prices:[],retailers:[]};
-
-  const now=new Date();
-  let startDate=null;
-  if(tf==='7d'){startDate=new Date(now);startDate.setDate(startDate.getDate()-7);}
-  else if(tf==='14d'){startDate=new Date(now);startDate.setDate(startDate.getDate()-14);}
-  else if(tf==='30d'){startDate=new Date(now);startDate.setDate(startDate.getDate()-30);}
-
-  const filtered=startDate?rows.filter(r=>r.timestamp>=startDate):rows;
-
-  const byDate={};
-  filtered.forEach(r=>{
-    const d=r.timestamp.toISOString().slice(0,10);
-    if(!byDate[d])byDate[d]=[];byDate[d].push(r);
-  });
-
-  const labels=[],prices=[],retailers=[];
-  Object.keys(byDate).sort().forEach(date=>{
-    const dr=byDate[date];const min=Math.min(...dr.map(r=>r.price));
-    const w=[...new Set(dr.filter(r=>r.price===min).map(r=>r.name.split(' - ')[1]||r.name))];
-    labels.push(date);prices.push(min);retailers.push({price:min,names:w});
-  });
-  return{labels,prices,retailers};
+function showToast(msg) {
+  const t = document.getElementById('toast'); t.textContent = msg;
+  t.classList.add('visible'); setTimeout(() => t.classList.remove('visible'), 2500);
 }
 
-function drawChart(bucket,idx,tf){
-  const{labels,prices,retailers}=getChartData(bucket,tf);
-  const canvas=document.getElementById('chart-'+idx);if(!canvas)return;
-  const ctx=canvas.getContext('2d');const tip=document.getElementById('tooltip');
-  if(charts[idx]){try{charts[idx].destroy();}catch(e){}delete charts[idx];}
-  const wrap=canvas.parentElement;
-  if(!labels.length){wrap.innerHTML='<div class="no-data">No data for this timeframe</div>';return;}
-
-  const dpr=window.devicePixelRatio||1,W=wrap.clientWidth,H=wrap.clientHeight||140;
-  canvas.width=W*dpr;canvas.height=H*dpr;ctx.scale(dpr,dpr);
-  const pad={top:10,right:12,bottom:25,left:50};
-  const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
-  const minP=Math.min(...prices)*0.986,maxP=Math.max(...prices)*1.014,range=maxP-minP||1;
-  const xPos=i=>pad.left+(labels.length>1?(i/(labels.length-1))*cW:cW/2);
-  const yPos=p=>pad.top+cH-((p-minP)/range)*cH;
-
-  // Grid
-  ctx.strokeStyle='#2e3347';ctx.lineWidth=1;
-  [0,.33,.66,1].forEach(t=>{
-    const y=pad.top+t*cH;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
-    ctx.fillStyle='#7b82a0';ctx.font='8px DM Mono,monospace';ctx.textAlign='right';
-    ctx.fillText('$'+(maxP-t*range).toFixed(0),pad.left-4,y+3);
+// ── Drag & drop ───────────────────────────────────────────────────────────────
+function initDrag() {
+  const grid = document.getElementById('products-grid'); let src = null;
+  grid.querySelectorAll('.product-card').forEach(card => {
+    card.addEventListener('dragstart', e => { if (!reorderMode) return; src = card; setTimeout(() => card.classList.add('dragging'), 0); e.dataTransfer.effectAllowed = 'move'; });
+    card.addEventListener('dragend',   () => {
+      card.classList.remove('dragging');
+      grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('drag-over'));
+      if (!reorderMode) return;
+      const order = [...grid.querySelectorAll('.product-card')].map(c => parseInt(c.dataset.idx));
+      config.buckets = order.map(i => config.buckets[i]);
+      grid.querySelectorAll('.product-card').forEach((c, i) => c.dataset.idx = i);
+      saveConfig('Reorder products');
+    });
+    card.addEventListener('dragover', e => { if (!reorderMode) return; e.preventDefault(); if (card !== src) { grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('drag-over')); card.classList.add('drag-over'); } });
+    card.addEventListener('drop',     e => { if (!reorderMode) return; e.preventDefault(); if (card !== src) { const cs = [...grid.querySelectorAll('.product-card')]; cs.indexOf(src) < cs.indexOf(card) ? card.after(src) : card.before(src); } card.classList.remove('drag-over'); });
   });
 
-  // Area fill
-  const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
-  grad.addColorStop(0,'rgba(79,142,247,0.2)');grad.addColorStop(1,'rgba(79,142,247,0)');
-  ctx.beginPath();ctx.moveTo(xPos(0),yPos(prices[0]));
-  prices.forEach((p,i)=>{if(i>0)ctx.lineTo(xPos(i),yPos(p));});
-  ctx.lineTo(xPos(prices.length-1),pad.top+cH);ctx.lineTo(xPos(0),pad.top+cH);
-  ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  // Touch drag
+  let td = null, tc = null, tox = 0, toy = 0;
+  grid.querySelectorAll('.drag-handle').forEach(h => {
+    h.addEventListener('touchstart', e => {
+      if (!reorderMode) return;
+      td = h.closest('.product-card');
+      const r = td.getBoundingClientRect(); tox = e.touches[0].clientX - r.left; toy = e.touches[0].clientY - r.top;
+      tc = td.cloneNode(true); tc.style.cssText = `position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;`;
+      document.body.appendChild(tc); td.style.opacity = '.3'; e.preventDefault();
+    }, { passive: false });
+    h.addEventListener('touchmove', e => {
+      if (!td || !tc) return; const t = e.touches[0];
+      tc.style.left = (t.clientX - tox) + 'px'; tc.style.top = (t.clientY - toy) + 'px';
+      const target = document.elementsFromPoint(t.clientX, t.clientY).find(el => el.classList.contains('product-card') && el !== td);
+      grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('drag-over'));
+      if (target) target.classList.add('drag-over'); e.preventDefault();
+    }, { passive: false });
+    h.addEventListener('touchend', e => {
+      if (!td) return; const t = e.changedTouches[0];
+      const target = document.elementsFromPoint(t.clientX, t.clientY).find(el => el.classList.contains('product-card') && el !== td);
+      if (target) { const cs = [...grid.querySelectorAll('.product-card')]; cs.indexOf(td) < cs.indexOf(target) ? target.after(td) : target.before(td); }
+      td.style.opacity = ''; tc.remove(); tc = null; td = null;
+      grid.querySelectorAll('.product-card').forEach(c => c.classList.remove('drag-over'));
+      const order = [...grid.querySelectorAll('.product-card')].map(c => parseInt(c.dataset.idx));
+      config.buckets = order.map(i => config.buckets[i]);
+      grid.querySelectorAll('.product-card').forEach((c, i) => c.dataset.idx = i);
+      saveConfig('Reorder products');
+    });
+  });
+}
+
+// ── Chart ─────────────────────────────────────────────────────────────────────
+function getChartData(bucket, tf) {
+  const rows = allRows.filter(r => bucket.retailers.some(ret => r.name === `${bucket.label} - ${ret.name}`));
+  if (!rows.length) return { labels: [], prices: [], meta: [] };
+
+  let start = null;
+  if (tf !== 'all') {
+    const days = tf === '7d' ? 7 : tf === '14d' ? 14 : 30;
+    start = new Date(); start.setDate(start.getDate() - days); start.setHours(0, 0, 0, 0);
+  }
+
+  const filtered = start ? rows.filter(r => r.timestamp >= start) : rows;
+  const byDate = {};
+  filtered.forEach(r => {
+    const d = r.timestamp.toISOString().slice(0, 10);
+    if (!byDate[d]) byDate[d] = []; byDate[d].push(r);
+  });
+
+  const labels = [], prices = [], meta = [];
+  Object.keys(byDate).sort().forEach(date => {
+    const dr = byDate[date];
+    const min = Math.min(...dr.map(r => r.price));
+    const who = [...new Set(dr.filter(r => r.price === min).map(r => r.name.split(' - ').slice(1).join(' - ')))];
+    labels.push(date); prices.push(min); meta.push({ price: min, names: who });
+  });
+  return { labels, prices, meta };
+}
+
+function drawChart(bucket, idx, tf) {
+  const { labels, prices, meta } = getChartData(bucket, tf);
+  const canvas = document.getElementById('chart-' + idx); if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const tip = document.getElementById('tooltip');
+  if (charts[idx]) { try { charts[idx].destroy(); } catch(e) {} delete charts[idx]; }
+  const wrap = canvas.parentElement;
+  if (!labels.length) { wrap.innerHTML = '<div class="no-data">No data for this timeframe</div>'; return; }
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = wrap.clientWidth, H = wrap.clientHeight || 140;
+  canvas.width = W * dpr; canvas.height = H * dpr; ctx.scale(dpr, dpr);
+
+  const pad = { top: 10, right: 12, bottom: 26, left: 52 };
+  const cW = W - pad.left - pad.right, cH = H - pad.top - pad.bottom;
+  const minP = Math.min(...prices) * 0.986, maxP = Math.max(...prices) * 1.014, range = maxP - minP || 1;
+
+  // X positions: evenly spaced, leftmost = index 0, rightmost = last index
+  const xPos = i => pad.left + (labels.length > 1 ? (i / (labels.length - 1)) * cW : cW / 2);
+  const yPos = p => pad.top + cH - ((p - minP) / range) * cH;
+
+  // Grid lines
+  ctx.strokeStyle = '#2e3347'; ctx.lineWidth = 1;
+  [0, .33, .66, 1].forEach(t => {
+    const y = pad.top + t * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cW, y); ctx.stroke();
+    ctx.fillStyle = '#7b82a0'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'right';
+    ctx.fillText('$' + (maxP - t * range).toFixed(0), pad.left - 4, y + 3);
+  });
+
+  // Area
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, 'rgba(79,142,247,.2)'); grad.addColorStop(1, 'rgba(79,142,247,0)');
+  ctx.beginPath(); ctx.moveTo(xPos(0), yPos(prices[0]));
+  prices.forEach((p, i) => { if (i > 0) ctx.lineTo(xPos(i), yPos(p)); });
+  ctx.lineTo(xPos(prices.length - 1), pad.top + cH); ctx.lineTo(xPos(0), pad.top + cH);
+  ctx.closePath(); ctx.fillStyle = grad; ctx.fill();
 
   // Line
-  ctx.beginPath();ctx.strokeStyle='#4f8ef7';ctx.lineWidth=2;ctx.lineJoin='round';
-  prices.forEach((p,i)=>i===0?ctx.moveTo(xPos(i),yPos(p)):ctx.lineTo(xPos(i),yPos(p)));
+  ctx.beginPath(); ctx.strokeStyle = '#4f8ef7'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+  prices.forEach((p, i) => i === 0 ? ctx.moveTo(xPos(i), yPos(p)) : ctx.lineTo(xPos(i), yPos(p)));
   ctx.stroke();
 
   // Dots
-  prices.forEach((p,i)=>{
-    ctx.beginPath();ctx.arc(xPos(i),yPos(p),2.5,0,Math.PI*2);
-    ctx.fillStyle='#4f8ef7';ctx.fill();ctx.strokeStyle='#0f1117';ctx.lineWidth=1.5;ctx.stroke();
+  prices.forEach((p, i) => {
+    ctx.beginPath(); ctx.arc(xPos(i), yPos(p), 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#4f8ef7'; ctx.fill(); ctx.strokeStyle = '#0f1117'; ctx.lineWidth = 1.5; ctx.stroke();
   });
 
-  // X labels
-  ctx.fillStyle='#7b82a0';ctx.font='8px DM Mono,monospace';ctx.textAlign='center';
-  const step=Math.ceil(labels.length/5);
-  labels.forEach((l,i)=>{
-    if(i%step===0||i===labels.length-1){
-      const d=new Date(l+'T12:00:00');
-      ctx.fillText(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),xPos(i),H-4);
-    }
+  // X axis labels — always show first and last, plus evenly spaced
+  ctx.fillStyle = '#7b82a0'; ctx.font = '8px DM Mono,monospace'; ctx.textAlign = 'center';
+  const maxLabels = Math.max(2, Math.floor(cW / 55));
+  const step = Math.max(1, Math.floor((labels.length - 1) / (maxLabels - 1)));
+  const shown = new Set([0, labels.length - 1]);
+  for (let i = step; i < labels.length - 1; i += step) shown.add(i);
+  shown.forEach(i => {
+    const d = new Date(labels[i] + 'T12:00:00');
+    ctx.fillText(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), xPos(i), H - 5);
   });
 
-  charts[idx]={labels,prices,retailers,xPos,yPos,destroy:()=>{}};
+  charts[idx] = { labels, prices, meta, xPos, yPos, destroy: () => {} };
 
-  canvas.onmousemove=e=>{
-    const rect=canvas.getBoundingClientRect();const mX=e.clientX-rect.left;const c=charts[idx];if(!c)return;
-    let near=0,md=Infinity;
-    c.labels.forEach((_,i)=>{const d=Math.abs(c.xPos(i)-mX);if(d<md){md=d;near=i;}});
-    if(md>40){tip.classList.remove('visible');return;}
-    const r=c.retailers[near];const date=new Date(c.labels[near]+'T12:00:00');
-    tip.innerHTML=`<div class="tooltip-date">${date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div><div class="tooltip-price">$${r.price.toFixed(2)}</div><div class="tooltip-retailers">Lowest at: ${r.names.join(', ')}</div>`;
+  canvas.onmousemove = e => {
+    const rect = canvas.getBoundingClientRect();
+    const mx = e.clientX - rect.left;
+    const c = charts[idx]; if (!c) return;
+    let near = 0, md = Infinity;
+    c.labels.forEach((_, i) => { const d = Math.abs(c.xPos(i) - mx); if (d < md) { md = d; near = i; } });
+    if (md > 40) { tip.classList.remove('visible'); return; }
+    const m = c.meta[near];
+    const date = new Date(c.labels[near] + 'T12:00:00');
+    tip.innerHTML = `<div class="tooltip-date">${date.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' })}</div><div class="tooltip-price">$${m.price.toFixed(2)}</div><div class="tooltip-retailers">Lowest at: ${m.names.join(', ')}</div>`;
     tip.classList.add('visible');
-    const tx=e.clientX+12;tip.style.left=(tx+160>window.innerWidth?e.clientX-170:tx)+'px';
-    tip.style.top=(e.clientY-16)+'px';
+    const tx = e.clientX + 12;
+    tip.style.left = (tx + 155 > window.innerWidth ? e.clientX - 162 : tx) + 'px';
+    tip.style.top  = (e.clientY - 14) + 'px';
   };
-  canvas.onmouseleave=()=>tip.classList.remove('visible');
+  canvas.onmouseleave = () => tip.classList.remove('visible');
 }
 
-function changeTimeframe(btn,idx,tf){
-  btn.closest('.timeframe-btns').querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
+function changeTf(btn, idx, tf) {
+  btn.closest('.timeframe-btns').querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  const wrap=document.getElementById('chart-'+idx)?.parentElement;
-  if(wrap&&!wrap.querySelector('canvas'))wrap.innerHTML=`<canvas id="chart-${idx}"></canvas>`;
-  drawChart(config.buckets[idx],idx,tf);
-}
-
-// ── Mobile header menu ───────────────────────────────────────────────────────
-function toggleMobileMenu(){
-  const menu=document.getElementById('mobile-header-menu');
-  const hidden=menu.classList.contains('hidden');
-  closeAllMenus();
-  if(hidden){
-    const btn=document.getElementById('mobile-header-btn');
-    const rect=btn.getBoundingClientRect();
-    menu.style.top=(rect.bottom+6)+'px';
-    menu.style.right=(window.innerWidth-rect.right)+'px';
-    menu.classList.remove('hidden');
-  }
-}
-function closeMobileMenu(){
-  document.getElementById('mobile-header-menu')?.classList.add('hidden');
+  const wrap = document.getElementById('chart-' + idx)?.parentElement;
+  if (wrap && !wrap.querySelector('canvas')) wrap.innerHTML = `<canvas id="chart-${idx}"></canvas>`;
+  drawChart(config.buckets[idx], idx, tf);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
-window.addEventListener('resize',()=>{
-  if(!config)return;
-  config.buckets.forEach((b,i)=>{if(collapseState[i]!==false)drawChart(b,i,getTf(i));});
+window.addEventListener('resize', () => {
+  if (!config) return;
+  config.buckets.forEach((b, i) => { if (collapseState[i] !== false) drawChart(b, i, getTf(i)); });
 });
 </script>
 </body>
