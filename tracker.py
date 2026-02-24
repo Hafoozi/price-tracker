@@ -78,62 +78,70 @@ def clean_image_url(img, page_url: str):
     return img
 
 
-# Comprehensive OOS detection — case-insensitive, handles hyphens/special chars
-OOS_PATTERNS = re.compile(
-    r"sold[\s\-_]*out"
-    r"|out[\s\-_]*of[\s\-_]*stock"
-    r"|back[\s\-_]*order(?:ed)?"
-    r"|temporarily[\s\-_]*(?:out[\s\-_]*of[\s\-_]*stock|unavailable)"
-    r"|currently[\s\-_]*unavailable"
-    r"|item[\s\-_]*unavailable"
-    r"|product[\s\-_]*unavailable"
-    r"|pre[\s\-_]*order"
-    r"|coming[\s\-_]*soon"
-    r"|notify[\s\-_]*(?:me|when[\s\-_]*available)"
-    r"|join[\s\-_]*(?:the[\s\-_]*)?waitlist"
-    r"|out[\s\-_]*of[\s\-_]*print"
-    r"|discontinued",
-    re.IGNORECASE
-)
+def is_out_of_stock(soup, url: str) -> bool:
+    """
+    Precision OOS detection — avoids false positives from multi-variant pages.
 
-def is_out_of_stock(soup) -> bool:
-    """Check page for common out-of-stock signals."""
-    # 1. JSON-LD availability
+    Strategy: Only use signals that are SPECIFIC to the requested variant:
+      1. JSON-LD structured data availability field (most reliable)
+      2. Disabled primary add-to-cart / buy button
+      3. product:availability meta tag
+
+    We deliberately avoid scanning page text (span/div/p) because Shopify and
+    most retailers show ALL variant availability on one page — a sold-out size
+    or color will appear as "Sold Out" text even when the selected variant is
+    in stock.
+    """
+    # Extract variant ID from URL if present (e.g. ?variant=41773030113355)
+    variant_id = None
+    vm = re.search(r'[?&](?:variant|sku_id|sku)=([\w\-]+)', url)
+    if vm:
+        variant_id = vm.group(1)
+
+    # 1. JSON-LD structured data — check all offers, prefer variant-matched one
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.string or "")
             items = data if isinstance(data, list) else [data]
             for item in items:
                 offers = item.get("offers", {})
-                if isinstance(offers, list): offers = offers[0] if offers else {}
-                avail = offers.get("availability", "")
-                if any(x in avail for x in ["OutOfStock","SoldOut","Discontinued","PreOrder","BackOrder"]):
-                    return True
+                offer_list = offers if isinstance(offers, list) else [offers]
+                for offer in offer_list:
+                    avail = offer.get("availability", "")
+                    offer_url = offer.get("url", "")
+                    # If we have a variant ID, only trust offers for that variant
+                    if variant_id and offer_url and variant_id not in offer_url:
+                        continue
+                    oos_signals = ["OutOfStock", "SoldOut", "Discontinued", "BackOrder"]
+                    if any(x in avail for x in oos_signals):
+                        return True
+                    # Explicit InStock means we can stop — definitely available
+                    if "InStock" in avail:
+                        return False
         except Exception:
             pass
 
-    # 2. Meta tags
+    # 2. product:availability meta tag (Facebook/OpenGraph — set by retailer explicitly)
     meta_avail = soup.find("meta", {"property": "product:availability"}) or \
                  soup.find("meta", {"name": "availability"})
     if meta_avail:
-        val = (meta_avail.get("content") or "").lower()
-        if "out" in val or "unavailable" in val or "backorder" in val:
+        val = (meta_avail.get("content") or "").strip().lower()
+        if val in ("out of stock", "oos", "sold out", "backorder", "preorder"):
             return True
+        if val in ("in stock", "instock", "available"):
+            return False
 
-    # 3. Common OOS button/badge text
-    for tag in soup.find_all(["button", "span", "div", "p", "h2", "h3"], limit=200):
-        text = tag.get_text(separator=" ", strip=True)
-        if text and OOS_PATTERNS.search(text):
-            # Avoid false positives from long descriptions
-            if len(text) < 80:
-                return True
-
-    # 4. Disabled add-to-cart button
-    for btn in soup.find_all("button", limit=50):
+    # 3. Disabled primary add-to-cart / buy button
+    # Only count buttons whose text is specifically a purchase action
+    add_to_cart_texts = {"add to cart", "add to bag", "buy now", "purchase", "checkout"}
+    for btn in soup.find_all("button", limit=100):
+        if btn.get("disabled") is None:
+            continue
         btn_text = btn.get_text(strip=True).lower()
-        if any(x in btn_text for x in ["add to cart", "add to bag", "buy now"]):
-            if btn.get("disabled") is not None:
-                return True
+        # Strip common prefixes/suffixes to get the core action
+        btn_text_clean = re.sub(r'[\-–—].*$', '', btn_text).strip()
+        if btn_text_clean in add_to_cart_texts:
+            return True
 
     return False
 
@@ -192,7 +200,7 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
         if cleaned: result["image"] = cleaned
 
     # Check for out-of-stock signals
-    result["oos"] = is_out_of_stock(soup)
+    result["oos"] = is_out_of_stock(soup, url)
     status = f"${result['price']:.2f}" if result["price"] else "NO PRICE"
     oos_tag = " [OOS]" if result["oos"] else ""
     print(f"  [{'OK' if result['price'] else 'WARN'}] {name}: {status}{oos_tag}  img={'yes' if result['image'] else 'no'}")
