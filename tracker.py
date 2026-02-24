@@ -80,17 +80,20 @@ def clean_image_url(img, page_url: str):
 
 def is_out_of_stock(soup, url: str) -> bool:
     """
-    Precision OOS detection — avoids false positives from multi-variant pages.
+    Tiered OOS detection — 5 layers, ordered from most to least reliable.
 
-    Strategy: Only use signals that are SPECIFIC to the requested variant:
-      1. JSON-LD structured data availability field (most reliable)
-      2. Disabled primary add-to-cart / buy button
-      3. product:availability meta tag
-
-    We deliberately avoid scanning page text (span/div/p) because Shopify and
-    most retailers show ALL variant availability on one page — a sold-out size
-    or color will appear as "Sold Out" text even when the selected variant is
-    in stock.
+    Layer 1: JSON-LD structured data (most reliable, variant-aware)
+    Layer 2: Shopify variant JSON in page source ("available":false)
+             Catches sites like JSACoffee whose variant data lives in
+             inline HTML attributes or plain script blocks, not ld+json.
+    Layer 3: CSS class signals (price--sold-out, badge--sold-out, etc.)
+             Standard Shopify Refresh/Dawn theme pattern.
+    Layer 4: Button text content (not just disabled state)
+             Catches "Sold out" buttons that aren't marked disabled.
+             Also catches disabled add-to-cart buttons (original behavior).
+    Layer 5: Scoped text scan — last resort, requires 2 signals to fire.
+             Only searches inside product form/info containers to avoid
+             false positives from review text mentioning other variants.
     """
     # Extract variant ID from URL if present (e.g. ?variant=41773030113355)
     variant_id = None
@@ -98,7 +101,7 @@ def is_out_of_stock(soup, url: str) -> bool:
     if vm:
         variant_id = vm.group(1)
 
-    # 1. JSON-LD structured data — check all offers, prefer variant-matched one
+    # ── Layer 1: JSON-LD structured data ──────────────────────────────────────
     for script in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(script.string or "")
@@ -109,19 +112,81 @@ def is_out_of_stock(soup, url: str) -> bool:
                 for offer in offer_list:
                     avail = offer.get("availability", "")
                     offer_url = offer.get("url", "")
-                    # If we have a variant ID, only trust offers for that variant
                     if variant_id and offer_url and variant_id not in offer_url:
                         continue
                     oos_signals = ["OutOfStock", "SoldOut", "Discontinued", "BackOrder"]
                     if any(x in avail for x in oos_signals):
                         return True
-                    # Explicit InStock means we can stop — definitely available
                     if "InStock" in avail:
                         return False
         except Exception:
             pass
 
-    # 2. product:availability meta tag (Facebook/OpenGraph — set by retailer explicitly)
+    # ── Layer 2: Shopify variant JSON (inline HTML / script blocks) ───────────
+    # Covers two patterns:
+    #   A) Plain JSON objects in script tags: {"available":false,"inventory_quantity":0,...}
+    #   B) HTML-encoded JSON in shopify-payment-terms attributes: "available&quot;:false
+    # When a variant ID is in the URL, we look for that variant's data specifically.
+    # When there's no variant ID, we check if ALL variants are unavailable (product-level OOS).
+    page_html = str(soup)
+
+    # Pattern A: raw JSON variant objects (standard Shopify inline data)
+    variant_json_pattern = re.compile(
+        r'\{[^{}]*?"available"\s*:\s*(true|false)[^{}]*?"inventory_quantity"\s*:\s*(-?\d+)[^{}]*?\}',
+        re.DOTALL
+    )
+    variant_matches = variant_json_pattern.findall(page_html)
+    if variant_matches:
+        if variant_id:
+            # Find the JSON block that contains our specific variant ID
+            specific_pattern = re.compile(
+                r'\{[^{}]*?"id"\s*:\s*' + re.escape(variant_id) + r'[^{}]*?\}',
+                re.DOTALL
+            )
+            specific = specific_pattern.search(page_html)
+            if specific:
+                block = specific.group(0)
+                avail_m = re.search(r'"available"\s*:\s*(true|false)', block)
+                inv_m   = re.search(r'"inventory_quantity"\s*:\s*(-?\d+)', block)
+                if avail_m and avail_m.group(1) == "false":
+                    return True
+                if inv_m and int(inv_m.group(1)) <= 0:
+                    # inventory_quantity alone can be 0 while available=true (oversell allowed)
+                    # Only trust it if available is also false or missing
+                    if not avail_m or avail_m.group(1) != "true":
+                        return True
+        else:
+            # No variant in URL — OOS only if ALL variants are unavailable
+            all_oos = all(avail == "false" for avail, _ in variant_matches)
+            if all_oos and len(variant_matches) > 0:
+                return True
+
+    # Pattern B: HTML-encoded JSON in shopify-payment-terms (e.g. JSACoffee)
+    payment_terms = soup.find("shopify-payment-terms")
+    if payment_terms:
+        meta_raw = payment_terms.get("shopify-meta", "")
+        if meta_raw:
+            # Decode HTML entities (&quot; → ") then parse
+            meta_decoded = meta_raw.replace("&quot;", '"').replace("&#34;", '"') \
+                                   .replace("&amp;", "&").replace("&#39;", "'")
+            try:
+                meta_data = json.loads(meta_decoded)
+                variants  = meta_data.get("variants", [])
+                if variants:
+                    if variant_id:
+                        for v in variants:
+                            if str(v.get("id")) == variant_id:
+                                if not v.get("available", True):
+                                    return True
+                                break
+                    else:
+                        # No variant specified — OOS if all variants unavailable
+                        if all(not v.get("available", True) for v in variants):
+                            return True
+            except Exception:
+                pass
+
+    # ── Layer 3: product:availability meta tag ────────────────────────────────
     meta_avail = soup.find("meta", {"property": "product:availability"}) or \
                  soup.find("meta", {"name": "availability"})
     if meta_avail:
@@ -131,17 +196,44 @@ def is_out_of_stock(soup, url: str) -> bool:
         if val in ("in stock", "instock", "available"):
             return False
 
-    # 3. Disabled primary add-to-cart / buy button
-    # Only count buttons whose text is specifically a purchase action
+    # ── Layer 4: CSS class signals + button text ───────────────────────────────
+    # 4a. Sold-out CSS classes on price/badge elements (Shopify Refresh/Dawn theme standard)
+    sold_out_class = re.compile(r'\bprice--sold-out\b|\bbadge--sold-out\b|\bsold-out\b', re.I)
+    if soup.find(class_=sold_out_class):
+        return True
+
+    # 4b. Button text — "Sold out" / "Unavailable" button text (regardless of disabled state)
+    #     AND disabled add-to-cart buttons (original behavior preserved)
     add_to_cart_texts = {"add to cart", "add to bag", "buy now", "purchase", "checkout"}
+    sold_out_texts    = {"sold out", "out of stock", "unavailable", "notify me"}
     for btn in soup.find_all("button", limit=100):
-        if btn.get("disabled") is None:
-            continue
-        btn_text = btn.get_text(strip=True).lower()
-        # Strip common prefixes/suffixes to get the core action
-        btn_text_clean = re.sub(r'[\-–—].*$', '', btn_text).strip()
-        if btn_text_clean in add_to_cart_texts:
+        btn_text_raw   = btn.get_text(strip=True).lower()
+        btn_text_clean = re.sub(r'[\-–—].*$', '', btn_text_raw).strip()
+        # "Sold out" button text = definitive OOS signal (with or without disabled)
+        if btn_text_clean in sold_out_texts:
             return True
+        # Disabled add-to-cart = OOS signal (original behavior)
+        if btn.get("disabled") is not None and btn_text_clean in add_to_cart_texts:
+            return True
+
+    # ── Layer 5: Scoped text scan (last resort — requires 2 hits) ─────────────
+    # Only search inside product-specific containers to avoid false positives
+    # from reviews or "related products" sections mentioning sold-out variants.
+    oos_phrases = re.compile(r'\b(sold\s+out|out\s+of\s+stock)\b', re.I)
+    product_containers = soup.find_all(
+        ["div", "section", "form"],
+        class_=re.compile(
+            r'product[-_]?(form|info|detail|main|summary|purchase|buy|content)',
+            re.I
+        ),
+        limit=5
+    )
+    scoped_hits = 0
+    for container in product_containers:
+        text = container.get_text(" ", strip=True)
+        scoped_hits += len(oos_phrases.findall(text))
+    if scoped_hits >= 2:
+        return True
 
     return False
 
