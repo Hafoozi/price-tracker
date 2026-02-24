@@ -77,8 +77,69 @@ def clean_image_url(img, page_url: str):
         return None
     return img
 
+
+# Comprehensive OOS detection — case-insensitive, handles hyphens/special chars
+OOS_PATTERNS = re.compile(
+    r"sold[\s\-_]*out"
+    r"|out[\s\-_]*of[\s\-_]*stock"
+    r"|back[\s\-_]*order(?:ed)?"
+    r"|backordered"
+    r"|temporarily[\s\-_]*(?:out[\s\-_]*of[\s\-_]*stock|unavailable)"
+    r"|currently[\s\-_]*unavailable"
+    r"|not[\s\-_]*available"
+    r"|unavailable"
+    r"|pre[\s\-_]*order"
+    r"|coming[\s\-_]*soon"
+    r"|notify[\s\-_]*me"
+    r"|join[\s\-_]*waitlist"
+    r"|out[\s\-_]*of[\s\-_]*print"
+    r"|discontinued",
+    re.IGNORECASE
+)
+
+def is_out_of_stock(soup) -> bool:
+    """Check page for common out-of-stock signals."""
+    # 1. JSON-LD availability
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or "")
+            items = data if isinstance(data, list) else [data]
+            for item in items:
+                offers = item.get("offers", {})
+                if isinstance(offers, list): offers = offers[0] if offers else {}
+                avail = offers.get("availability", "")
+                if any(x in avail for x in ["OutOfStock","SoldOut","Discontinued","PreOrder","BackOrder"]):
+                    return True
+        except Exception:
+            pass
+
+    # 2. Meta tags
+    meta_avail = soup.find("meta", {"property": "product:availability"}) or \
+                 soup.find("meta", {"name": "availability"})
+    if meta_avail:
+        val = (meta_avail.get("content") or "").lower()
+        if "out" in val or "unavailable" in val or "backorder" in val:
+            return True
+
+    # 3. Common OOS button/badge text
+    for tag in soup.find_all(["button", "span", "div", "p", "h2", "h3"], limit=200):
+        text = tag.get_text(separator=" ", strip=True)
+        if text and OOS_PATTERNS.search(text):
+            # Avoid false positives from long descriptions
+            if len(text) < 80:
+                return True
+
+    # 4. Disabled add-to-cart button
+    for btn in soup.find_all("button", limit=50):
+        btn_text = btn.get_text(strip=True).lower()
+        if any(x in btn_text for x in ["add to cart", "add to bag", "buy now"]):
+            if btn.get("disabled") is not None:
+                return True
+
+    return False
+
 def scrape_product(url: str, label: str, retailer: str) -> dict:
-    result = {"price": None, "image": None}
+    result = {"price": None, "image": None, "oos": False}
     name   = f"{label} - {retailer}"
     try:
         response = requests.get(url, headers=HEADERS, timeout=15)
@@ -132,12 +193,15 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
         cleaned = clean_image_url(img, url)
         if cleaned: result["image"] = cleaned
 
+    # Check for out-of-stock signals
+    result["oos"] = is_out_of_stock(soup)
     status = f"${result['price']:.2f}" if result["price"] else "NO PRICE"
-    print(f"  [{'OK' if result['price'] else 'WARN'}] {name}: {status}  img={'yes' if result['image'] else 'no'}")
+    oos_tag = " [OOS]" if result["oos"] else ""
+    print(f"  [{'OK' if result['price'] else 'WARN'}] {name}: {status}{oos_tag}  img={'yes' if result['image'] else 'no'}")
     return result
 
 # ── CSV ───────────────────────────────────────────────────────────────────────
-FIELDS = ["timestamp", "name", "price", "url", "image"]
+FIELDS = ["timestamp", "name", "price", "url", "image", "oos"]
 
 def ensure_csv_header():
     if not os.path.exists(PRICE_LOG):
@@ -172,7 +236,7 @@ def read_price_7days_ago(label: str, retailer: str):
     past = [r for r in rows if datetime.strptime(r["timestamp"], "%Y-%m-%d %H:%M:%S") <= cutoff]
     return float(past[-1]["price"]) if past else None
 
-def log_price(label: str, retailer: str, url: str, price: float, image: str | None):
+def log_price(label: str, retailer: str, url: str, price: float, image: str | None, oos: bool = False):
     with open(PRICE_LOG, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=FIELDS)
         writer.writerow({
@@ -181,6 +245,7 @@ def log_price(label: str, retailer: str, url: str, price: float, image: str | No
             "price":     f"{price:.2f}",
             "url":       url,
             "image":     image or "",
+            "oos":       "1" if oos else "",
         })
 
 # ── Email ─────────────────────────────────────────────────────────────────────
@@ -288,13 +353,19 @@ def run(weekly: bool = False):
             result    = scrape_product(url, label, rname)
             new_price = result["price"]
             image     = result["image"]
-            current_prices[name] = new_price
+            oos       = result["oos"]
+            current_prices[name] = new_price if not oos else None
 
             if new_price is None:
                 continue
 
+            # Always log the price (even OOS — dashboard shows it with OOS tag)
             old_price = read_last_price(label, rname)
-            log_price(label, rname, url, new_price, image)
+            log_price(label, rname, url, new_price, image, oos)
+
+            if oos:
+                print(f"    [OOS] ${new_price:.2f} — item sold out / unavailable, no alert triggered")
+                continue
 
             if old_price is None:
                 print(f"    [INFO] Baseline: ${new_price:.2f}")
