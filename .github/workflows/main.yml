@@ -2,9 +2,12 @@ name: Price Tracker
 
 on:
   schedule:
-    - cron: '0 13 * * *'     # 8:00 AM Eastern — daily price check
-    - cron: '0 23 * * *'     # 6:00 PM Eastern — daily price check
-    - cron: '30 23 * * 0'    # 6:30 PM Eastern on Sundays — weekly summary
+    - cron: '0 11 * * *'     #  6:00 AM ET — daily price check
+    - cron: '0 15 * * *'     # 10:00 AM ET — daily price check
+    - cron: '0 19 * * *'     #  2:00 PM ET — daily price check
+    - cron: '0 23 * * *'     #  6:00 PM ET — daily price check
+    - cron: '0 3  * * *'     # 10:00 PM ET — daily price check (next UTC day)
+    - cron: '30 11 * * 0'    #  6:30 AM ET on Sundays — weekly summary
   workflow_dispatch:
     inputs:
       mode:
@@ -35,7 +38,7 @@ jobs:
         run: pip install requests beautifulsoup4
 
       - name: Run price tracker (normal)
-        if: github.event.schedule != '30 23 * * 0' && github.event.inputs.mode != 'weekly'
+        if: github.event.schedule != '30 11 * * 0' && github.event.inputs.mode != 'weekly'
         env:
           SENDER_EMAIL:    ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD:    ${{ secrets.APP_PASSWORD }}
@@ -43,7 +46,7 @@ jobs:
         run: python tracker.py
 
       - name: Run price tracker (weekly summary)
-        if: github.event.schedule == '30 23 * * 0' || github.event.inputs.mode == 'weekly'
+        if: github.event.schedule == '30 11 * * 0' || github.event.inputs.mode == 'weekly'
         env:
           SENDER_EMAIL:    ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD:    ${{ secrets.APP_PASSWORD }}
