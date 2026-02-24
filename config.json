@@ -23,23 +23,6 @@
       ]
     },
     {
-      "label": "Brake Free Tail Light",
-      "retailers": [
-        {
-          "name": "BrakeFreeTech",
-          "url": "https://www.brakefreetech.com/products/brake-free"
-        },
-        {
-          "name": "RevZilla",
-          "url": "https://www.revzilla.com/motorcycle/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
-        },
-        {
-          "name": "CycleGear",
-          "url": "https://www.cyclegear.com/accessories/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
-        }
-      ]
-    },
-    {
       "label": "Turin DF83 Gen 2 Grinder",
       "retailers": [
         {
@@ -53,6 +36,23 @@
         {
           "name": "CliffAndPebble",
           "url": "https://cliffandpebble.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=53087496896785"
+        }
+      ]
+    },
+    {
+      "label": "Brake Free Tail Light",
+      "retailers": [
+        {
+          "name": "BrakeFreeTech",
+          "url": "https://www.brakefreetech.com/products/brake-free"
+        },
+        {
+          "name": "RevZilla",
+          "url": "https://www.revzilla.com/motorcycle/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
+        },
+        {
+          "name": "CycleGear",
+          "url": "https://www.cyclegear.com/accessories/brake-free-smart-helmet-brake-light-usb-c?sku_id=10452795"
         }
       ]
     }
