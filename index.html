@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Price Tracker v22</title>
+  <title>Price Tracker v23</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
@@ -131,6 +131,7 @@
     .tag-err{background:rgba(247,201,72,.15);color:var(--yellow);border:1px solid rgba(247,201,72,.3)}
     .tag-oos{background:rgba(247,156,79,.15);color:var(--orange);border:1px solid rgba(247,156,79,.3)}
     .rprice{font-family:var(--mono);font-size:0.88rem;font-weight:600;flex-shrink:0}
+    .rprice.oos-price{color:var(--muted);text-decoration:line-through;font-weight:400}
     .rprice.best{color:var(--green)}.rprice.na{color:var(--muted);font-style:italic;font-size:.72rem}
 
     /* Add retailer */
@@ -251,7 +252,7 @@
       <!-- Status (always visible) -->
       <div class="status-wrap">
         <div class="sdot green" id="sdot"></div>
-        <span class="slabel">Status</span>
+        <span class="slabel">Live</span>
         <div class="stip">
           <div class="dot-row"><div class="mdot" style="background:var(--green)"></div>Current — under 2 hrs</div>
           <div class="dot-row"><div class="mdot" style="background:var(--yellow)"></div>Stale — 2 to 14 hrs</div>
@@ -491,7 +492,7 @@ function getAvg(bucket){
   const br=rows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
   if(br.length<6)return null;
   const byDay={};
-  br.forEach(r=>{const d=r.ts.toISOString().slice(0,10);if(!byDay[d])byDay[d]=[];byDay[d].push(r.price);});
+  br.filter(r=>!r.oos).forEach(r=>{const d=r.ts.toISOString().slice(0,10);if(!byDay[d])byDay[d]=[];byDay[d].push(r.price);});
   const lows=Object.values(byDay).map(p=>Math.min(...p));
   return lows.reduce((a,b)=>a+b,0)/lows.length;
 }
@@ -510,14 +511,12 @@ function buildCard(bucket,idx,isOpen){
   const best=prices.length?Math.min(...prices):null;
   const avg=getAvg(bucket);
 
-  // Build warning messages
+  // Warning icon only for actual data errors — NOT sold out (that's shown inline)
   const warnMsgs=[];
   const failedCount=rets.filter(r=>r.failed&&!r.error).length;
   const errCount=rets.filter(r=>r.error).length;
-  const oosCount=rets.filter(r=>r.oos).length;
   if(failedCount)warnMsgs.push(`${failedCount} retailer${failedCount>1?'s':''} have no data`);
   if(errCount)warnMsgs.push(`${errCount} retailer${errCount>1?'s':''} failed last run`);
-  if(oosCount)warnMsgs.push(`${oosCount} retailer${oosCount>1?'s are':' is'} sold out`);
 
   // Price vs avg
   let vsHtml='';
@@ -573,7 +572,7 @@ function buildCard(bucket,idx,isOpen){
         ${r.error?'<span class="tag tag-err">Failed</span>':''}
         ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
-      <div class="rprice ${isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
+      <div class="rprice ${r.oos?'oos-price':isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
     retEl.appendChild(row);
   });
 
