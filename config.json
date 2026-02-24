@@ -6,23 +6,6 @@
   },
   "buckets": [
     {
-      "label": "Lelit Bianca Espresso Machine",
-      "retailers": [
-        {
-          "name": "CliveCoffee",
-          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
-        },
-        {
-          "name": "SurLaTable",
-          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
-        },
-        {
-          "name": "CoffeeMachineDepot",
-          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
-        }
-      ]
-    },
-    {
       "label": "Turin DF83 Gen 2 Grinder",
       "retailers": [
         {
@@ -36,6 +19,23 @@
         {
           "name": "CliffAndPebble",
           "url": "https://cliffandpebble.com/products/turin-df83-gen-2-coffee-espresso-grinder?variant=53087496896785"
+        }
+      ]
+    },
+    {
+      "label": "Lelit Bianca Espresso Machine",
+      "retailers": [
+        {
+          "name": "CliveCoffee",
+          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
+        },
+        {
+          "name": "SurLaTable",
+          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
+        },
+        {
+          "name": "CoffeeMachineDepot",
+          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
         }
       ]
     },
