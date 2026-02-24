@@ -83,15 +83,14 @@ OOS_PATTERNS = re.compile(
     r"sold[\s\-_]*out"
     r"|out[\s\-_]*of[\s\-_]*stock"
     r"|back[\s\-_]*order(?:ed)?"
-    r"|backordered"
     r"|temporarily[\s\-_]*(?:out[\s\-_]*of[\s\-_]*stock|unavailable)"
     r"|currently[\s\-_]*unavailable"
-    r"|not[\s\-_]*available"
-    r"|unavailable"
+    r"|item[\s\-_]*unavailable"
+    r"|product[\s\-_]*unavailable"
     r"|pre[\s\-_]*order"
     r"|coming[\s\-_]*soon"
-    r"|notify[\s\-_]*me"
-    r"|join[\s\-_]*waitlist"
+    r"|notify[\s\-_]*(?:me|when[\s\-_]*available)"
+    r"|join[\s\-_]*(?:the[\s\-_]*)?waitlist"
     r"|out[\s\-_]*of[\s\-_]*print"
     r"|discontinued",
     re.IGNORECASE
@@ -151,14 +150,13 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
     soup = BeautifulSoup(response.text, "html.parser")
 
     selectors = [
-        {"name": "span", "class": re.compile(r"price", re.I)},
-        {"name": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
-        {"name": "span", "class": re.compile(r"product-price|sale-price|current-price", re.I)},
-        {"name": "p",    "class": re.compile(r"price", re.I)},
+        {"tag": "span", "class": re.compile(r"price", re.I)},
+        {"tag": "div",  "class": re.compile(r"price__current|product__price|ProductPrice", re.I)},
+        {"tag": "span", "class": re.compile(r"product-price|sale-price|current-price", re.I)},
+        {"tag": "p",    "class": re.compile(r"price", re.I)},
     ]
     for sel in selectors:
-        tag_name = sel.pop("name")
-        el = soup.find(tag_name, sel)
+        el = soup.find(sel["tag"], {"class": sel["class"]})
         if el:
             price = clean_price(el.get_text())
             if price and price > 0:
@@ -350,36 +348,40 @@ def run(weekly: bool = False):
             name  = f"{label} - {rname}"
             print(f"  Checking {rname}...")
 
-            result    = scrape_product(url, label, rname)
-            new_price = result["price"]
-            image     = result["image"]
-            oos       = result["oos"]
-            current_prices[name] = new_price if not oos else None
+            try:
+                result    = scrape_product(url, label, rname)
+                new_price = result["price"]
+                image     = result["image"]
+                oos       = result["oos"]
+                current_prices[name] = new_price if not oos else None
 
-            if new_price is None:
-                continue
+                if new_price is None:
+                    continue
 
-            # Always log the price (even OOS — dashboard shows it with OOS tag)
-            old_price = read_last_price(label, rname)
-            log_price(label, rname, url, new_price, image, oos)
+                # Always log the price (even OOS — dashboard shows it with OOS tag)
+                old_price = read_last_price(label, rname)
+                log_price(label, rname, url, new_price, image, oos)
 
-            if oos:
-                print(f"    [OOS] ${new_price:.2f} — item sold out / unavailable, no alert triggered")
-                continue
+                if oos:
+                    print(f"    [OOS] ${new_price:.2f} — item sold out / unavailable, no alert triggered")
+                    continue
 
-            if old_price is None:
-                print(f"    [INFO] Baseline: ${new_price:.2f}")
-            elif new_price < old_price:
-                drop = old_price - new_price
-                pct  = (drop / old_price) * 100
-                print(f"    [DROP] ${old_price:.2f} → ${new_price:.2f} (-${drop:.2f}, -{pct:.1f}%)")
-                if not already_alerted_today(alerted, name):
-                    alerts.append({"name": name, "url": url, "old_price": old_price, "new_price": new_price, "drop": drop, "pct": pct})
-                    mark_alerted(alerted, name)
+                if old_price is None:
+                    print(f"    [INFO] Baseline: ${new_price:.2f}")
+                elif new_price < old_price:
+                    drop = old_price - new_price
+                    pct  = (drop / old_price) * 100
+                    print(f"    [DROP] ${old_price:.2f} → ${new_price:.2f} (-${drop:.2f}, -{pct:.1f}%)")
+                    if not already_alerted_today(alerted, name):
+                        alerts.append({"name": name, "url": url, "old_price": old_price, "new_price": new_price, "drop": drop, "pct": pct})
+                        mark_alerted(alerted, name)
+                    else:
+                        print(f"    [SKIP] Already alerted today for {name}")
                 else:
-                    print(f"    [SKIP] Already alerted today for {name}")
-            else:
-                print(f"    [OK] ${new_price:.2f} (was ${old_price:.2f})")
+                    print(f"    [OK] ${new_price:.2f} (was ${old_price:.2f})")
+
+            except Exception as e:
+                print(f"    [ERROR] Unexpected error scraping {name}: {e}")
 
             time.sleep(2)
 
