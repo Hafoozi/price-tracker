@@ -78,22 +78,80 @@ def clean_image_url(img, page_url: str):
     return img
 
 
+def _extract_shopify_variants(soup) -> list:
+    """
+    Extract all Shopify variant objects from a page robustly.
+
+    Shopify bakes variant data into the page in several ways:
+      A) A <script> tag containing a JS array assignment like:
+           var variants = [{...}, {...}];  or  product.variants = [{...}]
+      B) Inline JSON blobs in script blocks (not type=application/json)
+      C) The _SIConfig.product assignment used by some themes
+
+    We use BeautifulSoup to find candidate script blocks, then pull out
+    JSON arrays that look like variant lists. This avoids the nested-object
+    problem that regex-only approaches have.
+    """
+    variants = []
+    seen_ids = set()
+
+    for script in soup.find_all("script"):
+        text = script.string or ""
+        if '"available"' not in text and '"inventory_quantity"' not in text:
+            continue
+        # Find all [...] arrays that contain variant-shaped objects
+        # We look for array boundaries and try to parse incrementally
+        depth = 0
+        i = 0
+        while i < len(text):
+            if text[i] == '[':
+                start = i
+                depth = 1
+                i += 1
+                while i < len(text) and depth > 0:
+                    if text[i] == '[':   depth += 1
+                    elif text[i] == ']': depth -= 1
+                    i += 1
+                candidate = text[start:i]
+                # Only attempt parse if it looks like a variant array
+                if '"available"' in candidate and '"inventory_quantity"' in candidate:
+                    try:
+                        parsed = json.loads(candidate)
+                        if isinstance(parsed, list):
+                            for v in parsed:
+                                if isinstance(v, dict) and 'id' in v and 'available' in v:
+                                    vid = str(v['id'])
+                                    if vid not in seen_ids:
+                                        seen_ids.add(vid)
+                                        variants.append(v)
+                    except Exception:
+                        pass
+            else:
+                i += 1
+
+    return variants
+
+
 def is_out_of_stock(soup, url: str) -> bool:
     """
-    Tiered OOS detection — 5 layers, ordered from most to least reliable.
+    Tiered OOS detection — ordered from most to least reliable.
+    Early-returns False (confirmed IN STOCK) at any tier to prevent
+    false positives from other products present on the same page.
 
-    Layer 1: JSON-LD structured data (most reliable, variant-aware)
-    Layer 2: Shopify variant JSON in page source ("available":false)
-             Catches sites like JSACoffee whose variant data lives in
-             inline HTML attributes or plain script blocks, not ld+json.
-    Layer 3: CSS class signals (price--sold-out, badge--sold-out, etc.)
-             Standard Shopify Refresh/Dawn theme pattern.
-    Layer 4: Button text content (not just disabled state)
-             Catches "Sold out" buttons that aren't marked disabled.
-             Also catches disabled add-to-cart buttons (original behavior).
-    Layer 5: Scoped text scan — last resort, requires 2 signals to fire.
-             Only searches inside product form/info containers to avoid
-             false positives from review text mentioning other variants.
+    Layer 1: JSON-LD structured data (variant-aware, early-return both ways)
+    Layer 2: Shopify variant JSON extracted from script blocks (early-return both ways)
+             Handles nested objects correctly via bracket-matching parser.
+             Also checks shopify-payment-terms HTML attribute.
+    Layer 3: product:availability meta tag (early-return both ways)
+    Layer 4: Scoped CSS class + button text checks
+             Only runs if no variant-level confirmation was found above.
+             Scoped to product form containers to avoid false positives
+             from other sold-out products on multi-product pages.
+    Layer 5: Last-resort scoped text scan (requires 2 hits).
+
+    KEY INVARIANT: If we positively confirm IN STOCK at any layer, we
+    return False immediately rather than falling through to broader checks
+    that could fire on unrelated products elsewhere on the page.
     """
     # Extract variant ID from URL if present (e.g. ?variant=41773030113355)
     variant_id = None
@@ -118,71 +176,53 @@ def is_out_of_stock(soup, url: str) -> bool:
                     if any(x in avail for x in oos_signals):
                         return True
                     if "InStock" in avail:
-                        return False
+                        return False  # confirmed in-stock — stop here
         except Exception:
             pass
 
-    # ── Layer 2: Shopify variant JSON (inline HTML / script blocks) ───────────
-    # Covers two patterns:
-    #   A) Plain JSON objects in script tags: {"available":false,"inventory_quantity":0,...}
-    #   B) HTML-encoded JSON in shopify-payment-terms attributes: "available&quot;:false
-    # When a variant ID is in the URL, we look for that variant's data specifically.
-    # When there's no variant ID, we check if ALL variants are unavailable (product-level OOS).
-    page_html = str(soup)
-
-    # Pattern A: raw JSON variant objects (standard Shopify inline data)
-    variant_json_pattern = re.compile(
-        r'\{[^{}]*?"available"\s*:\s*(true|false)[^{}]*?"inventory_quantity"\s*:\s*(-?\d+)[^{}]*?\}',
-        re.DOTALL
-    )
-    variant_matches = variant_json_pattern.findall(page_html)
-    if variant_matches:
+    # ── Layer 2: Shopify variant JSON (robust bracket-matched parser) ──────────
+    variants = _extract_shopify_variants(soup)
+    if variants:
         if variant_id:
-            # Find the JSON block that contains our specific variant ID
-            specific_pattern = re.compile(
-                r'\{[^{}]*?"id"\s*:\s*' + re.escape(variant_id) + r'[^{}]*?\}',
-                re.DOTALL
-            )
-            specific = specific_pattern.search(page_html)
-            if specific:
-                block = specific.group(0)
-                avail_m = re.search(r'"available"\s*:\s*(true|false)', block)
-                inv_m   = re.search(r'"inventory_quantity"\s*:\s*(-?\d+)', block)
-                if avail_m and avail_m.group(1) == "false":
-                    return True
-                if inv_m and int(inv_m.group(1)) <= 0:
-                    # inventory_quantity alone can be 0 while available=true (oversell allowed)
-                    # Only trust it if available is also false or missing
-                    if not avail_m or avail_m.group(1) != "true":
+            for v in variants:
+                if str(v.get("id")) == variant_id:
+                    if v.get("available") is True:
+                        return False  # ← confirmed in-stock for our variant — STOP
+                    if v.get("available") is False:
                         return True
+                    # available field missing — fall through to other layers
+                    break
         else:
             # No variant in URL — OOS only if ALL variants are unavailable
-            all_oos = all(avail == "false" for avail, _ in variant_matches)
-            if all_oos and len(variant_matches) > 0:
+            if variants and all(v.get("available") is False for v in variants):
                 return True
+            if variants and any(v.get("available") is True for v in variants):
+                return False  # at least one variant available — STOP
 
-    # Pattern B: HTML-encoded JSON in shopify-payment-terms (e.g. JSACoffee)
+    # Layer 2b: shopify-payment-terms HTML attribute (HTML-encoded JSON)
     payment_terms = soup.find("shopify-payment-terms")
     if payment_terms:
         meta_raw = payment_terms.get("shopify-meta", "")
         if meta_raw:
-            # Decode HTML entities (&quot; → ") then parse
             meta_decoded = meta_raw.replace("&quot;", '"').replace("&#34;", '"') \
                                    .replace("&amp;", "&").replace("&#39;", "'")
             try:
                 meta_data = json.loads(meta_decoded)
-                variants  = meta_data.get("variants", [])
-                if variants:
+                pt_variants = meta_data.get("variants", [])
+                if pt_variants:
                     if variant_id:
-                        for v in variants:
+                        for v in pt_variants:
                             if str(v.get("id")) == variant_id:
-                                if not v.get("available", True):
+                                if v.get("available") is True:
+                                    return False  # confirmed in-stock — STOP
+                                if v.get("available") is False:
                                     return True
                                 break
                     else:
-                        # No variant specified — OOS if all variants unavailable
-                        if all(not v.get("available", True) for v in variants):
+                        if all(not v.get("available", True) for v in pt_variants):
                             return True
+                        if any(v.get("available", False) for v in pt_variants):
+                            return False
             except Exception:
                 pass
 
@@ -196,29 +236,35 @@ def is_out_of_stock(soup, url: str) -> bool:
         if val in ("in stock", "instock", "available"):
             return False
 
-    # ── Layer 4: CSS class signals + button text ───────────────────────────────
-    # 4a. Sold-out CSS classes on price/badge elements (Shopify Refresh/Dawn theme standard)
-    sold_out_class = re.compile(r'\bprice--sold-out\b|\bbadge--sold-out\b|\bsold-out\b', re.I)
-    if soup.find(class_=sold_out_class):
+    # ── Layer 4: Scoped CSS class + button text ────────────────────────────────
+    # IMPORTANT: Only search inside product-form containers, not the whole page.
+    # On multi-product pages (like Clive Coffee), other products may have
+    # sold-out badges/buttons that would cause false positives if we searched globally.
+    product_form = (
+        soup.find("form", {"data-type": "add-to-cart-form"}) or
+        soup.find("form", {"action": re.compile(r"/cart/add")}) or
+        soup.find(class_=re.compile(r'product[-_]form', re.I)) or
+        soup.find(class_=re.compile(r'product[-_]info', re.I))
+    )
+    search_scope = product_form if product_form else soup  # fallback to full page only if no form found
+
+    # 4a. Sold-out CSS classes (scoped)
+    sold_out_class = re.compile(r'\bprice--sold-out\b|\bbadge--sold-out\b', re.I)
+    if search_scope.find(class_=sold_out_class):
         return True
 
-    # 4b. Button text — "Sold out" / "Unavailable" button text (regardless of disabled state)
-    #     AND disabled add-to-cart buttons (original behavior preserved)
+    # 4b. Button text — "Sold out" / "Unavailable" AND disabled add-to-cart (scoped)
     add_to_cart_texts = {"add to cart", "add to bag", "buy now", "purchase", "checkout"}
-    sold_out_texts    = {"sold out", "out of stock", "unavailable", "notify me"}
-    for btn in soup.find_all("button", limit=100):
+    sold_out_texts    = {"sold out", "out of stock", "unavailable"}
+    for btn in search_scope.find_all("button", limit=50):
         btn_text_raw   = btn.get_text(strip=True).lower()
         btn_text_clean = re.sub(r'[\-–—].*$', '', btn_text_raw).strip()
-        # "Sold out" button text = definitive OOS signal (with or without disabled)
         if btn_text_clean in sold_out_texts:
             return True
-        # Disabled add-to-cart = OOS signal (original behavior)
         if btn.get("disabled") is not None and btn_text_clean in add_to_cart_texts:
             return True
 
     # ── Layer 5: Scoped text scan (last resort — requires 2 hits) ─────────────
-    # Only search inside product-specific containers to avoid false positives
-    # from reviews or "related products" sections mentioning sold-out variants.
     oos_phrases = re.compile(r'\b(sold\s+out|out\s+of\s+stock)\b', re.I)
     product_containers = soup.find_all(
         ["div", "section", "form"],
@@ -438,6 +484,18 @@ def run(weekly: bool = False):
     print(f"  Price Tracker — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     if weekly: print("  Mode: Weekly Summary")
     print(f"{'='*55}")
+
+    # Prune alerted dict — remove entries for products no longer in config
+    active_names = {
+        f"{bucket['label']} - {r['name']}"
+        for bucket in buckets
+        for r in bucket["retailers"]
+    }
+    stale = [k for k in list(alerted.keys()) if k not in active_names]
+    for k in stale:
+        del alerted[k]
+    if stale:
+        print(f"  [INFO] Pruned {len(stale)} stale alert entries: {stale}")
 
     for bucket in buckets:
         label = bucket["label"]
