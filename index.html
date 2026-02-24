@@ -2,263 +2,269 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-  <title>Price Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Price Tracker v19</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
       --bg:#0f1117;--surface:#1a1d27;--surface2:#22263a;--border:#2e3347;
-      --text:#e8eaf0;--muted:#7b82a0;--accent:#4f8ef7;--green:#34d98b;
+      --text:#e8eaf0;--muted:#9ba3c0;--accent:#4f8ef7;--green:#34d98b;
       --red:#f75c5c;--yellow:#f7c948;--orange:#f79c4f;
       --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:12px;
     }
-    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;overflow-x:hidden}
+    html,body{overflow-x:hidden;width:100%}
+    body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:16px}
 
     /* ── Header ── */
-    header{padding:12px 18px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
-    .header-inner{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:nowrap}
-    .header-left{min-width:0;flex-shrink:1}
-    .header-left h1{font-size:1.1rem;font-weight:600;white-space:nowrap}
-    .header-left h1 span{color:var(--accent)}
-    .header-meta{font-size:0.65rem;color:var(--muted);font-family:var(--mono);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .header-error{color:var(--yellow)}
-    .header-right{display:flex;align-items:center;gap:6px;flex-shrink:0}
+    header{background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:12px 16px}
+    .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+    .hdr-left h1{font-size:1.15rem;font-weight:600}
+    .hdr-left h1 span{color:var(--accent)}
+    .hdr-meta{font-size:0.68rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+    .hdr-error{color:var(--yellow);display:none}
+    .hdr-controls{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex-shrink:0}
 
     /* Status */
-    .status-wrap{display:flex;align-items:center;gap:5px;position:relative;cursor:default;flex-shrink:0}
-    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;animation:pulse 2s infinite}
-    .status-dot.green{background:var(--green)}
-    .status-dot.yellow{background:var(--yellow)}
-    .status-dot.red{background:var(--red)}
+    .status-wrap{display:flex;align-items:center;gap:5px;position:relative;cursor:default}
+    .sdot{width:9px;height:9px;border-radius:50%;animation:pulse 2s infinite;flex-shrink:0}
+    .sdot.green{background:var(--green)}.sdot.yellow{background:var(--yellow)}.sdot.red{background:var(--red)}
     @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-    .status-label{font-size:0.68rem;color:var(--muted);font-family:var(--mono);white-space:nowrap}
-    .status-tooltip{position:absolute;top:calc(100% + 8px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:0.68rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.6)}
-    .status-wrap:hover .status-tooltip{opacity:1}
+    .slabel{font-size:0.7rem;color:var(--muted);font-family:var(--mono);white-space:nowrap}
+    .stip{position:absolute;top:calc(100% + 8px);left:0;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 13px;font-size:0.68rem;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.6)}
+    .status-wrap:hover .stip{opacity:1}
     .dot-row{display:flex;align-items:center;gap:7px;margin-bottom:4px}
     .dot-row:last-child{margin-bottom:0}
-    .mini-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+    .mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
     /* Buttons */
-    .btn{padding:6px 11px;border-radius:7px;font-size:0.74rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
-    .btn-secondary{background:var(--surface2);color:var(--text)}
-    .btn-secondary:hover,.btn-secondary:active{border-color:var(--accent)}
-    .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
-    .btn-primary:hover,.btn-primary:active{background:#3a7ae0}
-    .btn-pause{background:rgba(247,201,72,.12);color:var(--yellow);border-color:rgba(247,201,72,.3)}
-    .btn-danger{background:rgba(247,92,92,.12);color:var(--red);border-color:rgba(247,92,92,.3)}
+    .btn{padding:7px 13px;border-radius:8px;font-size:0.78rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;line-height:1}
+    .btn-sec{background:var(--surface2);color:var(--text)}.btn-sec:active{border-color:var(--accent)}
+    .btn-pri{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-pri:active{background:#3a7ae0}
+    .btn-pau{background:rgba(247,201,72,.12);color:var(--yellow);border-color:rgba(247,201,72,.3)}
+    .btn-dan{background:rgba(247,92,92,.12);color:var(--red);border-color:rgba(247,92,92,.3)}
 
-    /* Desktop-only / mobile-only */
-    .desktop-only{display:flex}
-    .mobile-only{display:none}
-
-    /* Mobile header dropdown */
-    .mobile-dd-wrap{position:relative}
-    .mobile-dd{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:175px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6)}
-    .mobile-dd.hidden{display:none}
+    /* Mobile hamburger dropdown */
+    .mob-dd-wrap{position:relative}
+    .mob-dd{position:absolute;top:calc(100% + 6px);right:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:180px;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+    .mob-dd.hidden{display:none}
 
     /* Reorder banner */
-    .reorder-banner{display:none;background:rgba(79,142,247,.1);border-bottom:1px solid rgba(79,142,247,.3);padding:7px 18px;font-size:0.74rem;color:var(--accent);text-align:center}
+    .reorder-banner{display:none;background:rgba(79,142,247,.1);border-bottom:1px solid rgba(79,142,247,.3);padding:7px 16px;font-size:0.75rem;color:var(--accent);text-align:center}
     .reorder-banner.active{display:block}
 
     /* Main */
-    main{max-width:1080px;margin:0 auto;padding:18px 14px}
-    #loading,#error-state{text-align:center;padding:60px 20px;color:var(--muted);font-family:var(--mono);font-size:0.82rem}
-    #error-state{color:var(--red)}
-    .products-grid{display:grid;gap:11px}
+    main{max-width:1080px;margin:0 auto;padding:16px 12px}
+    #loading,#err{text-align:center;padding:60px 16px;color:var(--muted);font-family:var(--mono);font-size:0.82rem}
+    #err{color:var(--red)}
+    .grid{display:grid;gap:11px}
 
     /* Card */
-    .product-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
-    .product-card.drag-over{border-color:var(--accent);border-style:dashed}
-    .product-card.dragging{opacity:.4}
+    .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
+    .pcard.drag-over{border-color:var(--accent);border-style:dashed}
+    .pcard.dragging{opacity:.4}
     @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 
-    /* Card header — full row is the tap target, no arrow needed */
-    .card-header{padding:12px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent;transition:background .15s;width:100%}
-    .card-header:active{background:rgba(255,255,255,.02)}
+    /* Card header */
+    .card-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+    .card-hdr:active{background:rgba(255,255,255,.02);border-radius:var(--radius)}
 
     /* Drag handle */
-    .drag-handle{display:none;flex-direction:column;gap:3px;padding:5px 4px;cursor:grab;flex-shrink:0;color:var(--muted);border-radius:4px;touch-action:none}
-    .drag-handle:active{cursor:grabbing;color:var(--accent)}
-    .drag-handle span{display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
-    .reorder-mode .drag-handle{display:flex}
+    .dhandle{display:none;flex-direction:column;gap:3px;padding:5px 4px;cursor:grab;flex-shrink:0;color:var(--muted);border-radius:4px;touch-action:none}
+    .dhandle:active{color:var(--accent)}
+    .dhandle span{display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
+    .reorder-mode .dhandle{display:flex}
 
     /* Image */
-    .product-image,.product-image-placeholder{width:48px;height:48px;border-radius:8px;flex-shrink:0;border:1px solid var(--border)}
-    .product-image{object-fit:cover;background:var(--surface2)}
-    .product-image-placeholder{background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1rem}
+    .pimg,.pimg-ph{width:50px;height:50px;border-radius:8px;flex-shrink:0;border:1px solid var(--border)}
+    .pimg{object-fit:cover;background:var(--surface2)}
+    .pimg-ph{background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1rem}
 
-    /* Name / sub */
-    .card-header-info{flex:1;min-width:0}
-    .product-name{font-size:0.9rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .product-sub{display:flex;align-items:center;gap:5px;margin-top:2px}
-    .retailer-count{font-size:0.64rem;color:var(--muted);font-family:var(--mono)}
-    .warn-badge{font-size:0.64rem;color:var(--yellow)}
+    /* Header info */
+    .card-info{flex:1;min-width:0}
+    .pname{font-size:0.92rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+    .psub{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+    .rcount{font-size:0.66rem;color:var(--muted);font-family:var(--mono)}
+
+    /* Warning badge with tooltip */
+    .warn-wrap{position:relative;display:inline-flex;align-items:center;cursor:default}
+    .warn-icon{font-size:0.7rem;color:var(--yellow)}
+    .warn-tip{position:absolute;bottom:calc(100% + 5px);left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid rgba(247,201,72,.4);border-radius:7px;padding:5px 9px;font-size:0.65rem;color:var(--yellow);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.4)}
+    .warn-wrap:hover .warn-tip,.warn-wrap:active .warn-tip{opacity:1}
 
     /* Price block */
-    .card-header-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-    .price-block{text-align:right}
-    .price-current{font-size:1.15rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1.1}
-    .price-current.none{color:var(--muted);font-size:.85rem}
-    .price-vs{font-size:0.6rem;font-family:var(--mono);margin-top:2px;white-space:nowrap}
-    .price-vs.below{color:var(--green)}
-    .price-vs.above{color:var(--orange)}
-    .price-vs.near{color:var(--muted)}
+    .card-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .price-blk{text-align:right}
+    .price-cur{font-size:1.2rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1.1}
+    .price-cur.none{color:var(--muted);font-size:.85rem}
+    .price-vs{font-size:0.61rem;font-family:var(--mono);margin-top:2px;white-space:nowrap}
+    .pv-below{color:var(--green)}.pv-above{color:var(--orange)}.pv-near{color:var(--muted)}
 
-    /* Card ⋯ menu — appended to body, position:fixed */
-    .menu-btn{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;-webkit-tap-highlight-color:transparent}
-    .menu-btn:active{border-color:var(--accent);color:var(--text)}
-    .card-menu{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:168px;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.65)}
-    .card-menu.hidden{display:none}
-    .menu-item{display:flex;align-items:center;padding:10px 11px;border-radius:7px;font-size:0.8rem;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent;transition:background .1s}
-    .menu-item:active{background:var(--border)}
-    .menu-item.danger{color:var(--red)}
-    .menu-item.danger:active{background:rgba(247,92,92,.12)}
-    .menu-divider{height:1px;background:var(--border);margin:3px 0}
+    /* Card ⋯ menu */
+    .mbtn{width:32px;height:32px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;transition:all .15s}
+    .mbtn:active{border-color:var(--accent);color:var(--text)}
+    .cmenu{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:5px;min-width:170px;z-index:9999;box-shadow:0 8px 28px rgba(0,0,0,.7)}
+    .cmenu.hidden{display:none}
+    .mitem{display:flex;align-items:center;padding:11px 12px;border-radius:7px;font-size:0.82rem;cursor:pointer;color:var(--text);-webkit-tap-highlight-color:transparent}
+    .mitem:active{background:var(--border)}
+    .mitem.danger{color:var(--red)}
+    .mitem.danger:active{background:rgba(247,92,92,.12)}
+    .mdiv{height:1px;background:var(--border);margin:3px 0}
 
     /* Card body */
     .card-body{overflow:hidden;max-height:0;transition:max-height .3s ease}
     .card-body.open{max-height:2500px;border-top:1px solid var(--border)}
 
     /* Retailers */
-    .retailers{padding:9px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
-    .retailer-row{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;border-radius:7px;background:var(--surface2);gap:8px}
-    .retailer-row.is-best{border-left:3px solid var(--green)}
-    .retailer-row.is-failed{opacity:.5}
-    .retailer-row.is-error{border-left:3px solid var(--yellow)}
-    .retailer-info{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
-    .retailer-name{min-width:0}
-    .retailer-name a{color:var(--text);text-decoration:none;font-size:0.8rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
-    .retailer-name a:active{color:var(--accent)}
-    .tag{font-size:0.56rem;padding:2px 5px;border-radius:20px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
+    .rets{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
+    .rrow{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-radius:8px;background:var(--surface2);gap:8px}
+    .rrow.best-row{border-left:3px solid var(--green)}
+    .rrow.fail-row{opacity:.55}
+    .rrow.err-row{border-left:3px solid var(--yellow)}
+    .rinfo{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
+    .rname a{color:var(--text);text-decoration:none;font-size:0.85rem;font-weight:500}
+    .rname a:active{color:var(--accent)}
+    .tag{font-size:0.58rem;padding:2px 6px;border-radius:20px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
     .tag-best{background:rgba(52,217,139,.15);color:var(--green);border:1px solid rgba(52,217,139,.3)}
-    .tag-failed{background:rgba(247,92,92,.15);color:var(--red);border:1px solid rgba(247,92,92,.3)}
-    .tag-error{background:rgba(247,201,72,.15);color:var(--yellow);border:1px solid rgba(247,201,72,.3)}
-    .retailer-price{font-family:var(--mono);font-size:0.8rem;font-weight:500;flex-shrink:0}
-    .retailer-price.best{color:var(--green)}
-    .retailer-price.na{color:var(--muted);font-style:italic;font-size:0.72rem}
+    .tag-nd{background:rgba(247,92,92,.15);color:var(--red);border:1px solid rgba(247,92,92,.3)}
+    .tag-err{background:rgba(247,201,72,.15);color:var(--yellow);border:1px solid rgba(247,201,72,.3)}
+    .tag-oos{background:rgba(247,156,79,.15);color:var(--orange);border:1px solid rgba(247,156,79,.3)}
+    .rprice{font-family:var(--mono);font-size:0.85rem;font-weight:600;flex-shrink:0}
+    .rprice.best{color:var(--green)}.rprice.na{color:var(--muted);font-style:italic;font-size:.72rem}
 
     /* Add retailer */
-    .add-r-row{padding:7px 14px 12px}
-    .add-r-form{display:none;gap:6px;flex-wrap:wrap;margin-top:6px}
-    .add-r-form.open{display:flex}
-    .add-r-form input{flex:1;min-width:110px;padding:6px 9px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.76rem;font-family:var(--font);outline:none}
-    .add-r-form input:focus{border-color:var(--accent)}
-    .btn-add-r{font-size:0.68rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:5px 10px;cursor:pointer;transition:all .15s}
-    .btn-add-r:active{border-color:var(--accent);color:var(--accent)}
+    .addr-row{padding:8px 14px 13px}
+    .addr-form{display:none;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .addr-form.open{display:flex}
+    .addr-form input{flex:1;min-width:110px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;font-family:var(--font);outline:none}
+    .addr-form input:focus{border-color:var(--accent)}
+    .btn-addr{font-size:0.7rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:6px 10px;cursor:pointer}
+    .btn-addr:active{border-color:var(--accent);color:var(--accent)}
 
     /* Graph */
-    .graph-sec{padding:11px 14px 15px}
-    .graph-ctrl{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:6px}
-    .graph-lbl{font-size:0.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-    .tf-btns{display:flex;gap:3px}
-    .tf-btn{padding:4px 9px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.65rem;cursor:pointer;font-family:var(--mono);transition:all .15s;-webkit-tap-highlight-color:transparent}
-    .tf-btn:active{border-color:var(--accent);color:var(--text)}
-    .tf-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
-    .graph-wrap{position:relative;height:135px}
+    .gsec{padding:12px 14px 16px}
+    .gctrl{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:6px}
+    .glbl{font-size:0.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+    .tfbtns{display:flex;gap:3px}
+    .tfbtn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.67rem;cursor:pointer;font-family:var(--mono);-webkit-tap-highlight-color:transparent}
+    .tfbtn:active{border-color:var(--accent)}
+    .tfbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .gwrap{position:relative;height:140px}
     canvas{width:100%!important;display:block}
-    .no-data{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:0.7rem;font-family:var(--mono)}
+    .nodata{display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:0.72rem;font-family:var(--mono)}
 
-    /* Tooltip */
-    .chart-tip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 11px;font-size:0.71rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9998;min-width:145px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
-    .chart-tip.on{opacity:1}
-    .tip-date{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-bottom:3px}
-    .tip-price{font-family:var(--mono);font-size:0.88rem;font-weight:500;color:var(--green);margin-bottom:2px}
-    .tip-store{font-size:0.62rem;color:var(--muted);line-height:1.4}
+    /* Chart tooltip */
+    .ctip{position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:0.72rem;pointer-events:none;opacity:0;transition:opacity .15s;z-index:9998;min-width:145px;box-shadow:0 8px 20px rgba(0,0,0,.4)}
+    .ctip.on{opacity:1}
+    .ctip-date{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-bottom:3px}
+    .ctip-price{font-family:var(--mono);font-size:0.88rem;font-weight:500;color:var(--green);margin-bottom:2px}
+    .ctip-store{font-size:0.62rem;color:var(--muted);line-height:1.4}
 
     /* Modals */
     .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;align-items:center;justify-content:center;padding:14px}
     .overlay.open{display:flex}
-    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:440px}
-    .modal h2{font-size:0.88rem;margin-bottom:14px}
-    .modal label{display:block;font-size:0.7rem;color:var(--muted);margin-bottom:3px;margin-top:11px}
-    .modal input{width:100%;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.8rem;font-family:var(--font);outline:none}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:22px;width:100%;max-width:440px}
+    .modal h2{font-size:0.92rem;margin-bottom:14px;color:var(--text)}
+    .modal label{display:block;font-size:0.72rem;color:var(--muted);margin-bottom:4px;margin-top:12px}
+    .modal input{width:100%;padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.82rem;font-family:var(--font);outline:none}
     .modal input:focus{border-color:var(--accent)}
-    .modal-footer{display:flex;justify-content:flex-end;gap:6px;margin-top:16px}
-    .sm-modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;width:100%;max-width:340px}
-    .sm-modal h2{font-size:0.88rem}
-    .sm-modal p{font-size:0.8rem;color:var(--muted);margin-top:5px;line-height:1.5}
-    .sm-footer{display:flex;justify-content:flex-end;gap:6px;margin-top:14px}
-
-    /* Pause modal */
+    .mfooter{display:flex;justify-content:flex-end;gap:7px;margin-top:18px}
+    .smmodal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:340px}
+    .smmodal h2{font-size:0.9rem;color:var(--text)}
+    .smmodal p{font-size:0.82rem;color:var(--muted);margin-top:6px;line-height:1.55}
+    .smfooter{display:flex;justify-content:flex-end;gap:7px;margin-top:15px}
     .pause-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:390px}
-    .pause-box h2{font-size:0.88rem;margin-bottom:5px}
-    .pause-box p{font-size:0.75rem;color:var(--muted);margin-bottom:13px;line-height:1.5}
-    .pause-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
-    .pause-row:last-of-type{border-bottom:none}
-    .pause-lbl{font-size:0.8rem}
-    .pause-sub{font-size:0.63rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+    .pause-box h2{font-size:0.9rem;color:var(--text);margin-bottom:5px}
+    .pause-box p{font-size:0.76rem;color:var(--muted);margin-bottom:13px;line-height:1.5}
+    .prow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+    .prow:last-of-type{border-bottom:none}
+    .plbl{font-size:0.82rem;color:var(--text)}
+    .psub{font-size:0.63rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
     .sw{position:relative;width:38px;height:20px;flex-shrink:0}
     .sw input{opacity:0;width:0;height:0;position:absolute}
     .sl{position:absolute;inset:0;background:var(--border);border-radius:20px;cursor:pointer;transition:.2s}
     .sl:before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s}
     .sw input:checked+.sl{background:var(--green)}
     .sw input:checked+.sl:before{transform:translateX(18px)}
-    .pause-footer{display:flex;justify-content:flex-end;margin-top:12px}
+    .pfooter{display:flex;justify-content:flex-end;margin-top:13px}
 
     /* Toast */
-    .toast{position:fixed;bottom:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 13px;font-size:0.73rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .2s;z-index:300;pointer-events:none}
+    .toast{position:fixed;bottom:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.75rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .2s;z-index:300;pointer-events:none}
     .toast.on{opacity:1}
 
-    /* ── Responsive: anything under 768px gets mobile layout ── */
+    /* ── Desktop: > 767px ── */
+    @media(min-width:768px){
+      .mob-only{display:none!important}
+      .desk-only{display:flex!important}
+    }
+
+    /* ── Mobile: ≤ 767px ── */
     @media(max-width:767px){
-      .desktop-only{display:none!important}
-      .mobile-only{display:flex!important}
-      header{padding:10px 13px}
-      main{padding:10px}
-      .card-header{padding:11px 12px;gap:9px}
-      .product-image,.product-image-placeholder{width:44px;height:44px}
-      .product-name{font-size:0.85rem}
-      .price-current{font-size:1rem}
-      .price-vs{font-size:0.58rem}
-      .menu-btn{width:32px;height:32px}
-      .menu-item{padding:12px 11px;font-size:0.82rem}
-      .tf-btn{padding:5px 10px;font-size:0.68rem}
-      .graph-wrap{height:110px}
-      .retailer-row{padding:8px 10px}
+      .desk-only{display:none!important}
+      .mob-only{display:flex!important}
+      header{padding:10px 12px}
+      .hdr-top{flex-wrap:nowrap}
+      .hdr-left h1{font-size:1rem}
+      .hdr-meta{font-size:0.62rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .btn{padding:7px 11px;font-size:0.76rem}
+      main{padding:10px 10px}
+      .card-hdr{padding:11px 12px;gap:9px}
+      .pimg,.pimg-ph{width:44px;height:44px}
+      .pname{font-size:0.87rem}
+      .rcount{font-size:0.63rem}
+      .price-cur{font-size:1.05rem}
+      .price-vs{font-size:0.59rem}
+      .mbtn{width:34px;height:34px}
+      .mitem{padding:13px 12px;font-size:0.84rem}
+      .tfbtn{padding:6px 11px;font-size:0.69rem}
+      .gwrap{height:115px}
+      .rrow{padding:9px 10px}
+      .rname a{font-size:0.82rem}
+      .rprice{font-size:0.82rem}
+      .mob-dd{min-width:185px}
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="header-inner">
-    <div class="header-left">
+  <div class="hdr-top">
+    <div class="hdr-left">
       <h1>Price <span>Tracker</span></h1>
-      <div class="header-meta">
+      <div class="hdr-meta">
         <span id="last-updated">Loading...</span>
-        <span class="header-error" id="header-error" style="display:none"></span>
+        <span class="hdr-error" id="hdr-err"></span>
       </div>
     </div>
-    <div class="header-right">
-      <!-- Status -->
+    <div class="hdr-controls">
+      <!-- Status (always visible) -->
       <div class="status-wrap">
-        <div class="status-dot green" id="status-dot"></div>
-        <span class="status-label" id="status-label">Status</span>
-        <div class="status-tooltip">
-          <div class="dot-row"><div class="mini-dot" style="background:var(--green)"></div>Current — under 2 hrs old</div>
-          <div class="dot-row"><div class="mini-dot" style="background:var(--yellow)"></div>Stale — 2–14 hrs old</div>
-          <div class="dot-row"><div class="mini-dot" style="background:var(--red)"></div>Outdated — over 14 hrs old</div>
+        <div class="sdot green" id="sdot"></div>
+        <span class="slabel">Status</span>
+        <div class="stip">
+          <div class="dot-row"><div class="mdot" style="background:var(--green)"></div>Current — under 2 hrs</div>
+          <div class="dot-row"><div class="mdot" style="background:var(--yellow)"></div>Stale — 2 to 14 hrs</div>
+          <div class="dot-row"><div class="mdot" style="background:var(--red)"></div>Outdated — over 14 hrs</div>
         </div>
       </div>
-      <!-- Desktop -->
-      <div class="header-right desktop-only" style="gap:6px">
-        <button class="btn btn-secondary" id="toggle-all-btn" onclick="smartToggleAll()">Expand All</button>
-        <button class="btn btn-secondary" onclick="loadData()">Reload</button>
-        <button class="btn btn-pause" onclick="openPauseModal()">Pause</button>
-        <button class="btn btn-primary" onclick="openAddBucket()">+ Add Product</button>
+      <!-- Desktop buttons -->
+      <div class="desk-only" style="gap:6px;align-items:center">
+        <button class="btn btn-sec" id="tog-btn" onclick="smartToggle()">Expand All</button>
+        <button class="btn btn-sec" onclick="loadData()">Reload</button>
+        <button class="btn btn-pau" onclick="openPause()">Pause</button>
+        <button class="btn btn-pri" onclick="openAdd()">+ Add Product</button>
       </div>
-      <!-- Mobile -->
-      <div class="mobile-only" style="gap:6px;align-items:center">
-        <button class="btn btn-primary" onclick="openAddBucket()">+</button>
-        <div class="mobile-dd-wrap">
-          <button class="btn btn-secondary" id="mob-menu-btn" onclick="toggleMobileMenu(event)">☰</button>
-          <div class="mobile-dd hidden" id="mob-dd">
-            <div class="menu-item" onclick="smartToggleAll();closeMobileMenu()">Toggle All</div>
-            <div class="menu-item" onclick="enterReorder();closeMobileMenu()">Reorder Cards</div>
-            <div class="menu-item" onclick="loadData();closeMobileMenu()">Reload Data</div>
-            <div class="menu-item" onclick="openPauseModal();closeMobileMenu()">Pause Tracking</div>
+      <!-- Mobile buttons -->
+      <div class="mob-only" style="gap:6px;align-items:center">
+        <button class="btn btn-pri" onclick="openAdd()">+</button>
+        <div class="mob-dd-wrap">
+          <button class="btn btn-sec" onclick="toggleMobMenu(event)">☰</button>
+          <div class="mob-dd hidden" id="mob-dd">
+            <div class="mitem" onclick="smartToggle();closeMobMenu()">Toggle All</div>
+            <div class="mitem" onclick="enterReorder();closeMobMenu()">Reorder Cards</div>
+            <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
+            <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
           </div>
         </div>
       </div>
@@ -266,632 +272,588 @@
   </div>
 </header>
 
-<div class="reorder-banner" id="reorder-banner">
-  Reorder mode — drag cards to rearrange &nbsp;·&nbsp;
+<div class="reorder-banner" id="rbanner">
+  Reorder mode — drag to rearrange &nbsp;·&nbsp;
   <a href="#" onclick="exitReorder();return false" style="color:var(--accent)">Done</a>
 </div>
 
 <main>
   <div id="loading">Fetching price data...</div>
-  <div id="error-state" style="display:none"></div>
-  <div id="products-grid" class="products-grid" style="display:none"></div>
+  <div id="err" style="display:none"></div>
+  <div id="grid" class="grid" style="display:none"></div>
 </main>
 
 <!-- Add Product -->
 <div class="overlay" id="add-modal">
   <div class="modal">
     <h2>Add New Product</h2>
-    <label>Product Name</label><input id="nb-label" type="text" placeholder="e.g. Breville Barista Express"/>
-    <label>First Retailer</label><input id="nb-retailer" type="text" placeholder="e.g. Amazon"/>
+    <label>Product Name</label><input id="nb-lbl" type="text" placeholder="e.g. Breville Barista Express"/>
+    <label>First Retailer Name</label><input id="nb-ret" type="text" placeholder="e.g. Amazon"/>
     <label>Product URL</label><input id="nb-url" type="url" placeholder="https://..."/>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeAdd()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmAdd()">Add</button>
+    <div class="mfooter">
+      <button class="btn btn-sec" onclick="closeAdd()">Cancel</button>
+      <button class="btn btn-pri" onclick="confirmAdd()">Add</button>
     </div>
   </div>
 </div>
 
 <!-- Rename -->
-<div class="overlay" id="rename-modal">
-  <div class="sm-modal">
+<div class="overlay" id="ren-modal">
+  <div class="smmodal">
     <h2>Rename Product</h2>
-    <input id="rename-inp" type="text" style="width:100%;margin-top:11px;padding:8px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.83rem;font-family:var(--font);outline:none"/>
-    <div class="sm-footer">
-      <button class="btn btn-secondary" onclick="closeRename()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmRename()">Save</button>
+    <input id="ren-inp" type="text" style="width:100%;margin-top:12px;padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.85rem;font-family:var(--font);outline:none"/>
+    <div class="smfooter">
+      <button class="btn btn-sec" onclick="closeRen()">Cancel</button>
+      <button class="btn btn-pri" onclick="confirmRen()">Save</button>
     </div>
   </div>
 </div>
 
-<!-- Confirm delete -->
-<div class="overlay" id="confirm-modal">
-  <div class="sm-modal">
+<!-- Confirm -->
+<div class="overlay" id="conf-modal">
+  <div class="smmodal">
     <h2 id="conf-title">Are you sure?</h2>
     <p id="conf-msg"></p>
-    <div class="sm-footer">
-      <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
-      <button class="btn btn-danger" id="conf-btn">Delete</button>
+    <div class="smfooter">
+      <button class="btn btn-sec" onclick="closeConf()">Cancel</button>
+      <button class="btn btn-dan" id="conf-btn">Delete</button>
     </div>
   </div>
 </div>
 
 <!-- Pause -->
-<div class="overlay" id="pause-modal">
+<div class="overlay" id="pau-modal">
   <div class="pause-box">
     <h2>Pause / Resume Tracking</h2>
     <p>Toggle workflows on or off in GitHub Actions.</p>
-    <div class="pause-row">
-      <div><div class="pause-lbl">Hourly Price Scraper</div><div class="pause-sub">5 AM – 9 PM Eastern daily</div></div>
-      <label class="sw"><input type="checkbox" id="sw-normal" checked onchange="toggleWF(this.checked)"/><span class="sl"></span></label>
+    <div class="prow">
+      <div><div class="plbl">Hourly Price Scraper</div><div class="psub">5 AM–9 PM Eastern daily</div></div>
+      <label class="sw"><input type="checkbox" id="sw-norm" checked onchange="toggleWF(this.checked)"/><span class="sl"></span></label>
     </div>
-    <div class="pause-row">
-      <div><div class="pause-lbl">Weekly Summary Email</div><div class="pause-sub">Sundays 9:30 PM Eastern</div></div>
-      <label class="sw"><input type="checkbox" id="sw-weekly" checked onchange="toggleWF(this.checked,true)"/><span class="sl"></span></label>
+    <div class="prow">
+      <div><div class="plbl">Weekly Summary Email</div><div class="psub">Sundays 9:30 PM Eastern</div></div>
+      <label class="sw"><input type="checkbox" id="sw-week" checked onchange="toggleWF(this.checked,true)"/><span class="sl"></span></label>
     </div>
-    <div class="pause-footer"><button class="btn btn-secondary" onclick="closePauseModal()">Close</button></div>
+    <div class="pfooter"><button class="btn btn-sec" onclick="closePause()">Close</button></div>
   </div>
 </div>
 
-<div class="chart-tip" id="tip"></div>
+<div class="ctip" id="ctip"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const GHU='Hafoozi', GHR='price-tracker', GHB='main';
-const CSV_URL    = `https://raw.githubusercontent.com/${GHU}/${GHR}/${GHB}/price_history.csv`;
-const CONFIG_URL = `https://raw.githubusercontent.com/${GHU}/${GHR}/${GHB}/config.json`;
-const API        = `https://api.github.com/repos/${GHU}/${GHR}`;
+const GHU='Hafoozi',GHR='price-tracker',GHB='main';
+const CSV_URL=`https://raw.githubusercontent.com/${GHU}/${GHR}/${GHB}/price_history.csv`;
+const CFG_URL=`https://raw.githubusercontent.com/${GHU}/${GHR}/${GHB}/config.json`;
+const API=`https://api.github.com/repos/${GHU}/${GHR}`;
 
-let token = localStorage.getItem('gh_token') || '';
-let rows = [], cfg = null, charts = {}, confirmCb = null;
-let cState = {}, reorderMode = false, renameIdx = -1;
-let activeMenu = null, menuIdx = -1;
+let tok=localStorage.getItem('gh_token')||'';
+let rows=[],cfg=null,charts={},confCb=null;
+let cState={},reorderMode=false,renIdx=-1;
+let activeMenu=null,activeMenuIdx=-1;
 
-function getToken() {
-  if (!token) { token = prompt('Enter GitHub Personal Access Token:'); if (token) localStorage.setItem('gh_token', token); }
-  return token;
+function getToken(){if(!tok){tok=prompt('Enter GitHub Personal Access Token:');if(tok)localStorage.setItem('gh_token',tok);}return tok;}
+
+// ── TIMESTAMP FIX: parse CSV timestamps as UTC explicitly ─────────────────────
+// CSV format: "2026-02-23 01:45:00" (GitHub Actions = UTC, no timezone marker)
+// new Date("2026-02-23 01:45:00") is ambiguous — parsed as local in Chrome, invalid in Safari
+// Fix: replace space with T and append Z to force UTC interpretation
+function parseUTC(str){
+  if(!str)return new Date(NaN);
+  // Already has T and Z — leave alone
+  if(str.includes('T')&&str.endsWith('Z'))return new Date(str);
+  // "2026-02-23 01:45:00" → "2026-02-23T01:45:00Z"
+  return new Date(str.replace(' ','T')+'Z');
 }
 
-// ── Timezone ──────────────────────────────────────────────────────────────────
-function toET(d) {
-  return d.toLocaleString('en-US', { timeZone:'America/New_York', month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
+// Convert UTC date to Eastern Time string (handles EST/EDT automatically)
+function toET(d){
+  if(!d||isNaN(d))return '—';
+  return d.toLocaleString('en-US',{timeZone:'America/New_York',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
 }
 
-// ── Status ────────────────────────────────────────────────────────────────────
-function updateStatus(r) {
-  if (!r.length) return;
-  const age = (Date.now() - Math.max(...r.map(x => x.ts))) / 3600000;
-  const dot = document.getElementById('status-dot');
-  dot.className = 'status-dot ' + (age < 2 ? 'green' : age < 14 ? 'yellow' : 'red');
-  // label stays "Status" always — color does the talking
+// ── Status dot ────────────────────────────────────────────────────────────────
+function updateStatus(r){
+  if(!r.length)return;
+  const age=(Date.now()-Math.max(...r.map(x=>x.ts)))/3600000;
+  document.getElementById('sdot').className='sdot '+(age<2?'green':age<14?'yellow':'red');
 }
 
-// ── Load ──────────────────────────────────────────────────────────────────────
-async function loadData() {
-  ['loading','error-state','products-grid'].forEach((id,i) => document.getElementById(id).style.display = i===0?'block':'none');
-  document.getElementById('header-error').style.display = 'none';
-  try {
-    const [cr, cfr] = await Promise.all([fetch(CSV_URL+'?t='+Date.now()), fetch(CONFIG_URL+'?t='+Date.now())]);
-    if (!cr.ok)  throw new Error('CSV ' + cr.status);
-    if (!cfr.ok) throw new Error('Config ' + cfr.status);
-    cfg = await cfr.json();
-    const p = Papa.parse(await cr.text(), { header:true, skipEmptyLines:true });
-    rows = p.data.filter(r => r.name && r.price && r.timestamp).map(r => ({
-      ts:    new Date(r.timestamp),
-      name:  r.name.trim(),
-      price: parseFloat(r.price),
-      url:   (r.url||'').trim(),
-      img:   (r.image||'').trim()
-    })).filter(r => !isNaN(r.price));
+// ── Load data ─────────────────────────────────────────────────────────────────
+async function loadData(){
+  document.getElementById('loading').style.display='block';
+  document.getElementById('err').style.display='none';
+  document.getElementById('grid').style.display='none';
+  document.getElementById('hdr-err').style.display='none';
+  try{
+    const[cr,cfr]=await Promise.all([fetch(CSV_URL+'?t='+Date.now()),fetch(CFG_URL+'?t='+Date.now())]);
+    if(!cr.ok)throw new Error('CSV '+cr.status);
+    if(!cfr.ok)throw new Error('Config '+cfr.status);
+    cfg=await cfr.json();
+    const p=Papa.parse(await cr.text(),{header:true,skipEmptyLines:true});
+    rows=p.data.filter(r=>r.name&&r.price&&r.timestamp).map(r=>({
+      ts:parseUTC(r.timestamp),  // ← UTC fix applied here
+      name:r.name.trim(),
+      price:parseFloat(r.price),
+      url:(r.url||'').trim(),
+      img:(r.image||'').trim(),
+      oos:(r.oos||'').trim()==='1'  // out-of-stock flag from tracker
+    })).filter(r=>!isNaN(r.price)&&!isNaN(r.ts));
 
     // Last updated in ET
-    const names = new Set(cfg.buckets.flatMap(b => b.retailers.map(r => `${b.label} - ${r.name}`)));
-    const cur = rows.filter(r => names.has(r.name));
-    const latest = new Date(Math.max(...(cur.length ? cur : rows).map(r => r.ts)));
-    document.getElementById('last-updated').textContent = 'Last updated: ' + toET(latest);
+    const names=new Set(cfg.buckets.flatMap(b=>b.retailers.map(r=>`${b.label} - ${r.name}`)));
+    const cur=rows.filter(r=>names.has(r.name));
+    const srcRows=cur.length?cur:rows;
+    const latestTs=new Date(Math.max(...srcRows.map(r=>r.ts)));
+    document.getElementById('last-updated').textContent='Last updated: '+toET(latestTs);
 
-    // Error check
-    if (cur.length) {
-      const maxTs = Math.max(...cur.map(r => r.ts));
-      const bad = [...names].filter(n => !cur.some(r => r.name===n && Math.abs(r.ts - maxTs) < 7200000));
-      if (bad.length) {
-        const el = document.getElementById('header-error');
-        el.style.display = 'inline';
-        el.textContent = ` · ⚠ ${bad.length} retailer${bad.length>1?'s':''} failed last run`;
+    // Error detection
+    if(cur.length){
+      const maxTs=Math.max(...cur.map(r=>r.ts));
+      const bad=[...names].filter(n=>!cur.some(r=>r.name===n&&Math.abs(r.ts-maxTs)<7200000));
+      if(bad.length){
+        const el=document.getElementById('hdr-err');
+        el.style.display='inline';
+        el.textContent=` · ⚠ ${bad.length} retailer${bad.length>1?'s':''} failed last run`;
       }
     }
 
     updateStatus(rows);
     render();
-  } catch(e) {
-    document.getElementById('loading').style.display = 'none';
-    const el = document.getElementById('error-state'); el.style.display='block'; el.textContent='⚠ '+e.message;
+  }catch(e){
+    document.getElementById('loading').style.display='none';
+    const el=document.getElementById('err');el.style.display='block';el.textContent='⚠ '+e.message;
   }
 }
 
 // ── Render ────────────────────────────────────────────────────────────────────
-function render() {
-  const grid = document.getElementById('products-grid');
-  grid.innerHTML = '';
-  Object.values(charts).forEach(c => c && c.destroy && c.destroy()); charts = {};
-  const mobile = window.innerWidth <= 767;
-  cfg.buckets.forEach((b,i) => {
-    const open = cState[i] !== undefined ? cState[i] : !mobile;
-    grid.appendChild(buildCard(b, i, open));
+function render(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
+  const mobile=window.innerWidth<=767;
+  cfg.buckets.forEach((b,i)=>{
+    const open=cState[i]!==undefined?cState[i]:!mobile;
+    grid.appendChild(buildCard(b,i,open));
   });
-  document.getElementById('loading').style.display = 'none';
-  grid.style.display = 'grid';
-  if (reorderMode) grid.classList.add('reorder-mode');
-  cfg.buckets.forEach((b,i) => { if (cState[i] !== undefined ? cState[i] : !mobile) drawChart(b, i, 'all'); });
-  updToggleBtn();
-  initDrag();
-  closeAllMenus();
+  document.getElementById('loading').style.display='none';
+  grid.style.display='grid';
+  if(reorderMode)grid.classList.add('reorder-mode');
+  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:!mobile)drawChart(b,i,'all');});
+  updTogBtn();initDrag();closeAllMenus();
 }
 
-// ── Smart toggle all ──────────────────────────────────────────────────────────
-function smartToggleAll() {
-  const anyOpen = cfg.buckets.some((_,i) => {
-    const c = document.querySelector(`.product-card[data-idx="${i}"]`);
-    return c && c.querySelector('.card-body').classList.contains('open');
+// ── Smart toggle ──────────────────────────────────────────────────────────────
+function smartToggle(){
+  const anyOpen=cfg.buckets.some((_,i)=>{const c=document.querySelector(`.pcard[data-idx="${i}"]`);return c&&c.querySelector('.card-body').classList.contains('open');});
+  cfg.buckets.forEach((_,i)=>{
+    const card=document.querySelector(`.pcard[data-idx="${i}"]`);if(!card)return;
+    const body=card.querySelector('.card-body');
+    if(!anyOpen){body.classList.add('open');cState[i]=true;setTimeout(()=>drawChart(cfg.buckets[i],i,getTf(i)),60);}
+    else{body.classList.remove('open');cState[i]=false;}
   });
-  cfg.buckets.forEach((_,i) => {
-    const card = document.querySelector(`.product-card[data-idx="${i}"]`); if (!card) return;
-    const body = card.querySelector('.card-body');
-    if (!anyOpen) { body.classList.add('open'); cState[i]=true; setTimeout(()=>drawChart(cfg.buckets[i],i,getTf(i)),60); }
-    else          { body.classList.remove('open'); cState[i]=false; }
-  });
-  updToggleBtn();
+  updTogBtn();
 }
-function updToggleBtn() {
-  const anyOpen = cfg.buckets.some((_,i) => {
-    const c = document.querySelector(`.product-card[data-idx="${i}"]`);
-    return c && c.querySelector('.card-body').classList.contains('open');
-  });
-  const btn = document.getElementById('toggle-all-btn');
-  if (btn) btn.textContent = anyOpen ? 'Collapse All' : 'Expand All';
+function updTogBtn(){
+  const anyOpen=cfg.buckets.some((_,i)=>{const c=document.querySelector(`.pcard[data-idx="${i}"]`);return c&&c.querySelector('.card-body').classList.contains('open');});
+  const btn=document.getElementById('tog-btn');if(btn)btn.textContent=anyOpen?'Collapse All':'Expand All';
 }
 
-// ── Data helpers ──────────────────────────────────────────────────────────────
-function retailerData(bucket) {
-  const bRows = rows.filter(r => bucket.retailers.some(ret => r.name===`${bucket.label} - ${ret.name}`));
-  const maxTs = bRows.length ? Math.max(...bRows.map(r=>r.ts)) : null;
-  return bucket.retailers.map(r => {
-    const name = `${bucket.label} - ${r.name}`;
-    const rr   = rows.filter(x => x.name===name);
-    const last = rr.length ? rr.reduce((a,b)=>a.ts>b.ts?a:b) : null;
-    const inLast = maxTs && rr.some(x => Math.abs(x.ts-maxTs)<7200000);
-    return { name:r.name, url:r.url, price:last?.price??null, img:last?.img??'', failed:!last, error:rr.length>0&&maxTs&&!inLast };
+// ── Retailer data helpers ─────────────────────────────────────────────────────
+function getRetData(bucket){
+  const bRows=rows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
+  const maxTs=bRows.length?Math.max(...bRows.map(r=>r.ts)):null;
+  return bucket.retailers.map(r=>{
+    const name=`${bucket.label} - ${r.name}`;
+    const rr=rows.filter(x=>x.name===name);
+    const last=rr.length?rr.reduce((a,b)=>a.ts>b.ts?a:b):null;
+    const inLast=maxTs&&rr.some(x=>Math.abs(x.ts-maxTs)<7200000);
+    return{name:r.name,url:r.url,price:last?.price??null,img:last?.img??'',oos:last?.oos??false,failed:!last,error:rr.length>0&&maxTs&&!inLast};
   });
 }
 
-function avgPrice(bucket) {
-  const br = rows.filter(r => bucket.retailers.some(ret => r.name===`${bucket.label} - ${ret.name}`));
-  if (br.length < 6) return null;
-  const byDay = {};
-  br.forEach(r => { const d=r.ts.toISOString().slice(0,10); if(!byDay[d])byDay[d]=[]; byDay[d].push(r.price); });
-  const lows = Object.values(byDay).map(p=>Math.min(...p));
+function getAvg(bucket){
+  const br=rows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
+  if(br.length<6)return null;
+  const byDay={};
+  br.forEach(r=>{const d=r.ts.toISOString().slice(0,10);if(!byDay[d])byDay[d]=[];byDay[d].push(r.price);});
+  const lows=Object.values(byDay).map(p=>Math.min(...p));
   return lows.reduce((a,b)=>a+b,0)/lows.length;
 }
 
-// ── Build card ────────────────────────────────────────────────────────────────
-function buildCard(bucket, idx, isOpen) {
-  const rets   = retailerData(bucket);
-  const prices = rets.filter(r=>r.price!==null).map(r=>r.price);
-  const best   = prices.length ? Math.min(...prices) : null;
-  const warn   = rets.some(r=>r.failed||r.error);
-  const img    = rets.find(r=>r.img)?.img || '';
-  const avg    = avgPrice(bucket);
+// ── Build warning badge with tooltip ─────────────────────────────────────────
+function warnBadge(msgs){
+  if(!msgs.length)return'';
+  const tip=msgs.join(' · ');
+  return`<span class="warn-wrap"><span class="warn-icon">⚠</span><span class="warn-tip">${tip}</span></span>`;
+}
 
-  // Price vs avg — show both % AND dollar
-  let vsHtml = '';
-  if (best !== null && avg !== null) {
-    const pct  = ((avg - best) / avg * 100);
-    const diff = Math.abs(avg - best).toFixed(0);
-    if (Math.abs(pct) < 1) {
-      vsHtml = `<div class="price-vs near">≈ near avg ($${avg.toFixed(0)})</div>`;
-    } else if (best < avg) {
-      vsHtml = `<div class="price-vs below">↓ ${Math.abs(pct).toFixed(1)}% ($${diff} below avg)</div>`;
-    } else {
-      vsHtml = `<div class="price-vs above">↑ ${Math.abs(pct).toFixed(1)}% ($${diff} above avg)</div>`;
-    }
+// ── Build card ────────────────────────────────────────────────────────────────
+function buildCard(bucket,idx,isOpen){
+  const rets=getRetData(bucket);
+  const prices=rets.filter(r=>r.price!==null&&!r.oos).map(r=>r.price);
+  const best=prices.length?Math.min(...prices):null;
+  const avg=getAvg(bucket);
+
+  // Build warning messages
+  const warnMsgs=[];
+  const failedCount=rets.filter(r=>r.failed&&!r.error).length;
+  const errCount=rets.filter(r=>r.error).length;
+  const oosCount=rets.filter(r=>r.oos).length;
+  if(failedCount)warnMsgs.push(`${failedCount} retailer${failedCount>1?'s':''} have no data`);
+  if(errCount)warnMsgs.push(`${errCount} retailer${errCount>1?'s':''} failed last run`);
+  if(oosCount)warnMsgs.push(`${oosCount} retailer${oosCount>1?'s are':' is'} sold out`);
+
+  // Price vs avg
+  let vsHtml='';
+  if(best!==null&&avg!==null){
+    const pct=((avg-best)/avg*100),diff=Math.abs(avg-best).toFixed(0);
+    if(Math.abs(pct)<1)vsHtml=`<div class="price-vs pv-near">≈ near avg ($${avg.toFixed(0)})</div>`;
+    else if(best<avg)vsHtml=`<div class="price-vs pv-below">↓ ${Math.abs(pct).toFixed(1)}% ($${diff} below avg)</div>`;
+    else vsHtml=`<div class="price-vs pv-above">↑ ${Math.abs(pct).toFixed(1)}% ($${diff} above avg)</div>`;
   }
 
-  const imgHtml = img
-    ? `<img class="product-image" src="${img}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="product-image-placeholder" style="display:none">🛍</div>`
-    : `<div class="product-image-placeholder">🛍</div>`;
+  const img=rets.find(r=>r.img)?.img||'';
+  const imgHtml=img
+    ?`<img class="pimg" src="${img}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/><div class="pimg-ph" style="display:none">🛍</div>`
+    :`<div class="pimg-ph">🛍</div>`;
 
-  const card = document.createElement('div');
-  card.className = 'product-card'; card.dataset.idx = idx; card.draggable = false;
-  card.style.animationDelay = (idx*0.05)+'s';
+  const card=document.createElement('div');
+  card.className='pcard';card.dataset.idx=idx;card.draggable=false;
+  card.style.animationDelay=(idx*0.05)+'s';
 
-  const hdr = document.createElement('div');
-  hdr.className = 'card-header';
-  hdr.innerHTML = `
-    <div class="drag-handle" onclick="event.stopPropagation()"><span></span><span></span><span></span></div>
+  const hdr=document.createElement('div');hdr.className='card-hdr';
+  hdr.innerHTML=`
+    <div class="dhandle" onclick="event.stopPropagation()"><span></span><span></span><span></span></div>
     ${imgHtml}
-    <div class="card-header-info">
-      <div class="product-name">${bucket.label}</div>
-      <div class="product-sub">
-        <span class="retailer-count">${rets.length} retailer${rets.length!==1?'s':''}</span>
-        ${warn?'<span class="warn-badge">⚠</span>':''}
+    <div class="card-info">
+      <div class="pname">${bucket.label}</div>
+      <div class="psub">
+        <span class="rcount">${rets.length} retailer${rets.length!==1?'s':''}</span>
+        ${warnBadge(warnMsgs)}
       </div>
     </div>
-    <div class="card-header-right">
-      <div class="price-block">
-        <div class="price-current ${best===null?'none':''}">${best!==null?'$'+best.toFixed(2):'—'}</div>
+    <div class="card-right">
+      <div class="price-blk">
+        <div class="price-cur ${best===null?'none':''}">${best!==null?'$'+best.toFixed(2):'—'}</div>
         ${vsHtml}
       </div>
-      <button class="menu-btn" onclick="event.stopPropagation();toggleCardMenu(event,${idx})">⋯</button>
+      <button class="mbtn" onclick="event.stopPropagation();toggleCardMenu(event,${idx})">⋯</button>
     </div>`;
-  hdr.addEventListener('click', () => toggleCard(idx));
+  hdr.addEventListener('click',()=>toggleCard(idx));
 
-  const body = document.createElement('div');
-  body.className = 'card-body' + (isOpen?' open':'');
+  const body=document.createElement('div');body.className='card-body'+(isOpen?' open':'');
 
-  // Retailers list
-  const retEl = document.createElement('div'); retEl.className = 'retailers';
-  rets.forEach(r => {
-    const isBest = r.price!==null && r.price===best;
-    const row = document.createElement('div');
-    row.className = 'retailer-row'+(isBest?' is-best':'')+(r.failed&&!r.error?' is-failed':'')+(r.error?' is-error':'');
-    row.innerHTML = `
-      <div class="retailer-info">
-        <div class="retailer-name"><a href="${r.url}" target="_blank">${r.name}</a></div>
+  // Retailers
+  const retEl=document.createElement('div');retEl.className='rets';
+  rets.forEach(r=>{
+    const isBest=r.price!==null&&r.price===best&&!r.oos;
+    const row=document.createElement('div');
+    row.className='rrow'+(isBest?' best-row':'')+(r.failed&&!r.error?' fail-row':'')+(r.error?' err-row':'');
+    row.innerHTML=`
+      <div class="rinfo">
+        <div class="rname"><a href="${r.url}" target="_blank">${r.name}</a></div>
         ${isBest?'<span class="tag tag-best">Best</span>':''}
-        ${r.failed&&!r.error?'<span class="tag tag-failed">No Data</span>':''}
-        ${r.error?'<span class="tag tag-error">Failed</span>':''}
+        ${r.failed&&!r.error?'<span class="tag tag-nd">No Data</span>':''}
+        ${r.error?'<span class="tag tag-err">Failed</span>':''}
+        ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
-      <div class="retailer-price ${isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
+      <div class="rprice ${isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
     retEl.appendChild(row);
   });
 
   // Add retailer
-  const addR = document.createElement('div'); addR.className = 'add-r-row';
-  addR.innerHTML = `
-    <button class="btn-add-r" onclick="toggleAddR(this)">+ Add retailer</button>
-    <div class="add-r-form">
+  const addR=document.createElement('div');addR.className='addr-row';
+  addR.innerHTML=`
+    <button class="btn-addr" onclick="toggleAddR(this)">+ Add retailer</button>
+    <div class="addr-form">
       <input type="text" placeholder="Retailer name" class="rn"/>
-      <input type="url"  placeholder="Product URL"   class="ru"/>
-      <button class="btn btn-primary" style="font-size:.72rem;padding:5px 9px" onclick="addRetailer(this,${idx})">Add</button>
-      <button class="btn btn-secondary" style="font-size:.72rem;padding:5px 9px" onclick="toggleAddR(this.parentElement.previousElementSibling)">Cancel</button>
+      <input type="url" placeholder="Product URL" class="ru"/>
+      <button class="btn btn-pri" style="font-size:.72rem;padding:6px 10px" onclick="addRet(this,${idx})">Add</button>
+      <button class="btn btn-sec" style="font-size:.72rem;padding:6px 10px" onclick="toggleAddR(this.parentElement.previousElementSibling)">Cancel</button>
     </div>`;
 
   // Graph
-  const gEl = document.createElement('div'); gEl.className = 'graph-sec';
-  gEl.innerHTML = `
-    <div class="graph-ctrl">
-      <div class="graph-lbl">Price History</div>
-      <div class="tf-btns">
-        <button class="tf-btn active" onclick="changeTf(this,${idx},'all')">All</button>
-        <button class="tf-btn" onclick="changeTf(this,${idx},'30d')">30D</button>
-        <button class="tf-btn" onclick="changeTf(this,${idx},'14d')">14D</button>
-        <button class="tf-btn" onclick="changeTf(this,${idx},'7d')">7D</button>
+  const gEl=document.createElement('div');gEl.className='gsec';
+  gEl.innerHTML=`
+    <div class="gctrl">
+      <div class="glbl">Price History</div>
+      <div class="tfbtns">
+        <button class="tfbtn active" onclick="changeTf(this,${idx},'all')">All</button>
+        <button class="tfbtn" onclick="changeTf(this,${idx},'30d')">30D</button>
+        <button class="tfbtn" onclick="changeTf(this,${idx},'14d')">14D</button>
+        <button class="tfbtn" onclick="changeTf(this,${idx},'7d')">7D</button>
       </div>
     </div>
-    <div class="graph-wrap"><canvas id="chart-${idx}"></canvas></div>`;
+    <div class="gwrap"><canvas id="chart-${idx}"></canvas></div>`;
 
-  body.appendChild(retEl); body.appendChild(addR); body.appendChild(gEl);
-  card.appendChild(hdr); card.appendChild(body);
+  body.appendChild(retEl);body.appendChild(addR);body.appendChild(gEl);
+  card.appendChild(hdr);card.appendChild(body);
   return card;
 }
 
 // ── Toggle card ───────────────────────────────────────────────────────────────
-function toggleCard(idx) {
-  const card = document.querySelector(`.product-card[data-idx="${idx}"]`); if (!card) return;
-  const body = card.querySelector('.card-body');
-  const willOpen = !body.classList.contains('open');
-  if (willOpen) { body.classList.add('open'); cState[idx]=true; setTimeout(()=>drawChart(cfg.buckets[idx],idx,getTf(idx)),50); }
-  else          { body.classList.remove('open'); cState[idx]=false; }
-  updToggleBtn();
+function toggleCard(idx){
+  const card=document.querySelector(`.pcard[data-idx="${idx}"]`);if(!card)return;
+  const body=card.querySelector('.card-body');
+  const willOpen=!body.classList.contains('open');
+  if(willOpen){body.classList.add('open');cState[idx]=true;setTimeout(()=>drawChart(cfg.buckets[idx],idx,getTf(idx)),50);}
+  else{body.classList.remove('open');cState[idx]=false;}
+  updTogBtn();
 }
+function getTf(idx){return document.querySelector(`#chart-${idx}`)?.closest('.gsec')?.querySelector('.tfbtn.active')?.textContent.toLowerCase()||'all';}
 
-function getTf(idx) {
-  return document.querySelector(`#chart-${idx}`)?.closest('.graph-sec')?.querySelector('.tf-btn.active')?.textContent.toLowerCase() || 'all';
-}
-
-// ── Card ⋯ menu — fixed position, toggle on/off ────────────────────────────--
-function toggleCardMenu(e, idx) {
+// ── Card ⋯ menu ───────────────────────────────────────────────────────────────
+function toggleCardMenu(e,idx){
   e.stopPropagation();
-  // If same menu already open → close it
-  if (activeMenu && menuIdx === idx) { closeAllMenus(); return; }
+  if(activeMenuIdx===idx){closeAllMenus();return;}
   closeAllMenus();
-  menuIdx = idx;
-  const btn  = e.currentTarget;
-  const rect = btn.getBoundingClientRect();
-  const menu = document.createElement('div');
-  menu.className = 'card-menu';
-  menu.id = 'card-menu-active';
-  menu.innerHTML = `
-    <div class="menu-item" onclick="openRename(${idx});closeAllMenus()">Rename Product</div>
-    <div class="menu-item" onclick="enterReorder();closeAllMenus()">Reorder Cards</div>
-    <div class="menu-divider"></div>
-    <div class="menu-item danger" onclick="deleteBucket(${idx});closeAllMenus()">Delete Product</div>`;
-  document.body.appendChild(menu);
-  activeMenu = menu;
-  const mW = 170;
-  const left = Math.max(8, Math.min(rect.right - mW, window.innerWidth - mW - 8));
-  menu.style.top  = (rect.bottom + 5) + 'px';
-  menu.style.left = left + 'px';
+  activeMenuIdx=idx;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const menu=document.createElement('div');
+  menu.className='cmenu';menu.id='active-cmenu';
+  menu.innerHTML=`
+    <div class="mitem" onclick="openRen(${idx});closeAllMenus()">Rename Product</div>
+    <div class="mitem" onclick="enterReorder();closeAllMenus()">Reorder Cards</div>
+    <div class="mdiv"></div>
+    <div class="mitem danger" onclick="delBucket(${idx});closeAllMenus()">Delete Product</div>`;
+  document.body.appendChild(menu);activeMenu=menu;
+  const mW=170;
+  const left=Math.max(8,Math.min(rect.right-mW,window.innerWidth-mW-8));
+  menu.style.top=(rect.bottom+5)+'px';menu.style.left=left+'px';
 }
-
-function closeAllMenus() {
-  document.getElementById('card-menu-active')?.remove();
-  activeMenu = null; menuIdx = -1;
+function closeAllMenus(){
+  document.getElementById('active-cmenu')?.remove();
+  activeMenu=null;activeMenuIdx=-1;
   document.getElementById('mob-dd')?.classList.add('hidden');
 }
-document.addEventListener('click', () => closeAllMenus());
+document.addEventListener('click',()=>closeAllMenus());
 
-// ── Mobile header menu ────────────────────────────────────────────────────────
-function toggleMobileMenu(e) {
-  e.stopPropagation();
-  document.getElementById('mob-dd').classList.toggle('hidden');
-}
-function closeMobileMenu() { document.getElementById('mob-dd')?.classList.add('hidden'); }
+// ── Mobile menu ───────────────────────────────────────────────────────────────
+function toggleMobMenu(e){e.stopPropagation();document.getElementById('mob-dd').classList.toggle('hidden');}
+function closeMobMenu(){document.getElementById('mob-dd')?.classList.add('hidden');}
 
 // ── Reorder ───────────────────────────────────────────────────────────────────
-function enterReorder() {
-  reorderMode = true;
-  document.getElementById('reorder-banner').classList.add('active');
-  document.querySelectorAll('.product-card').forEach(c => c.draggable = true);
-  document.getElementById('products-grid').classList.add('reorder-mode');
-}
-function exitReorder() {
-  reorderMode = false;
-  document.getElementById('reorder-banner').classList.remove('active');
-  document.querySelectorAll('.product-card').forEach(c => c.draggable = false);
-  document.getElementById('products-grid').classList.remove('reorder-mode');
-}
+function enterReorder(){reorderMode=true;document.getElementById('rbanner').classList.add('active');document.querySelectorAll('.pcard').forEach(c=>c.draggable=true);document.getElementById('grid').classList.add('reorder-mode');}
+function exitReorder(){reorderMode=false;document.getElementById('rbanner').classList.remove('active');document.querySelectorAll('.pcard').forEach(c=>c.draggable=false);document.getElementById('grid').classList.remove('reorder-mode');}
 
 // ── Rename ────────────────────────────────────────────────────────────────────
-function openRename(idx) {
-  renameIdx = idx;
-  document.getElementById('rename-inp').value = cfg.buckets[idx].label;
-  document.getElementById('rename-modal').classList.add('open');
-  setTimeout(() => document.getElementById('rename-inp').select(), 60);
-}
-function closeRename() { document.getElementById('rename-modal').classList.remove('open'); renameIdx=-1; }
-async function confirmRename() {
-  const n = document.getElementById('rename-inp').value.trim();
-  if (!n || renameIdx<0) { closeRename(); return; }
-  cfg.buckets[renameIdx].label = n; closeRename(); await saveConfig('Rename: '+n);
-}
-document.getElementById('rename-inp').addEventListener('keydown', e => {
-  if (e.key==='Enter') confirmRename(); if (e.key==='Escape') closeRename();
-});
+function openRen(idx){renIdx=idx;document.getElementById('ren-inp').value=cfg.buckets[idx].label;document.getElementById('ren-modal').classList.add('open');setTimeout(()=>document.getElementById('ren-inp').select(),60);}
+function closeRen(){document.getElementById('ren-modal').classList.remove('open');renIdx=-1;}
+async function confirmRen(){const n=document.getElementById('ren-inp').value.trim();if(!n||renIdx<0){closeRen();return;}cfg.buckets[renIdx].label=n;closeRen();await saveConfig('Rename: '+n);}
+document.getElementById('ren-inp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmRen();if(e.key==='Escape')closeRen();});
 
-// ── Add product ───────────────────────────────────────────────────────────────
-function openAddBucket() { document.getElementById('add-modal').classList.add('open'); setTimeout(()=>document.getElementById('nb-label').focus(),50); }
-function closeAdd() { document.getElementById('add-modal').classList.remove('open'); ['nb-label','nb-retailer','nb-url'].forEach(id=>document.getElementById(id).value=''); }
-async function confirmAdd() {
-  const label=document.getElementById('nb-label').value.trim();
-  const rn=document.getElementById('nb-retailer').value.trim();
-  const ru=document.getElementById('nb-url').value.trim();
-  if (!label||!rn||!ru) { alert('Please fill in all fields.'); return; }
-  cfg.buckets.push({ label, retailers:[{name:rn,url:ru}] });
-  closeAdd(); await saveConfig('Add: '+label);
+// ── Add / Delete ──────────────────────────────────────────────────────────────
+function openAdd(){document.getElementById('add-modal').classList.add('open');setTimeout(()=>document.getElementById('nb-lbl').focus(),50);}
+function closeAdd(){document.getElementById('add-modal').classList.remove('open');['nb-lbl','nb-ret','nb-url'].forEach(id=>document.getElementById(id).value='');}
+async function confirmAdd(){
+  const l=document.getElementById('nb-lbl').value.trim(),rn=document.getElementById('nb-ret').value.trim(),ru=document.getElementById('nb-url').value.trim();
+  if(!l||!rn||!ru){alert('Please fill in all fields.');return;}
+  cfg.buckets.push({label:l,retailers:[{name:rn,url:ru}]});closeAdd();await saveConfig('Add: '+l);
 }
-
-// ── Add retailer ──────────────────────────────────────────────────────────────
-function toggleAddR(btn) { btn.nextElementSibling?.classList.toggle('open'); }
-async function addRetailer(btn, idx) {
-  const form = btn.closest('.add-r-form');
-  const n = form.querySelector('.rn').value.trim();
-  const u = form.querySelector('.ru').value.trim();
-  if (!n||!u) { alert('Enter retailer name and URL.'); return; }
-  cfg.buckets[idx].retailers.push({name:n,url:u});
-  await saveConfig('Add retailer '+n);
+function toggleAddR(btn){btn.nextElementSibling?.classList.toggle('open');}
+async function addRet(btn,idx){
+  const form=btn.closest('.addr-form');
+  const n=form.querySelector('.rn').value.trim(),u=form.querySelector('.ru').value.trim();
+  if(!n||!u){alert('Enter retailer name and URL.');return;}
+  cfg.buckets[idx].retailers.push({name:n,url:u});await saveConfig('Add retailer '+n);
 }
-
-// ── Delete ────────────────────────────────────────────────────────────────────
-function deleteBucket(idx) {
-  showConfirm('Delete Product?', `Remove "${cfg.buckets[idx].label}"? Historical data is kept.`,
-    async () => { cfg.buckets.splice(idx,1); await saveConfig('Delete product'); });
-}
+function delBucket(idx){showConf('Delete Product?',`Remove "${cfg.buckets[idx].label}"? Historical data is kept.`,async()=>{cfg.buckets.splice(idx,1);await saveConfig('Delete product');});}
 
 // ── Pause ─────────────────────────────────────────────────────────────────────
-function openPauseModal()  { document.getElementById('pause-modal').classList.add('open'); }
-function closePauseModal() { document.getElementById('pause-modal').classList.remove('open'); }
-async function toggleWF(enable) {
-  const t = getToken(); if (!t) { showToast('Token required.'); return; }
-  showToast(enable ? 'Resuming...' : 'Pausing...');
-  try {
-    const res = await fetch(`${API}/actions/workflows/price_tracker.yml/${enable?'enable':'disable'}`, { method:'PUT', headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'} });
-    showToast(res.status===204 ? (enable?'Resumed ✓':'Paused ✓') : 'Error — check token');
-  } catch(e) { showToast('Error: '+e.message); }
+function openPause(){document.getElementById('pau-modal').classList.add('open');}
+function closePause(){document.getElementById('pau-modal').classList.remove('open');}
+async function toggleWF(enable){
+  const t=getToken();if(!t){showToast('Token required.');return;}
+  showToast(enable?'Resuming...':'Pausing...');
+  try{const r=await fetch(`${API}/actions/workflows/price_tracker.yml/${enable?'enable':'disable'}`,{method:'PUT',headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'}});showToast(r.status===204?(enable?'Resumed ✓':'Paused ✓'):'Error — check token');}
+  catch(e){showToast('Error: '+e.message);}
 }
 
-// ── GitHub save ───────────────────────────────────────────────────────────────
-async function saveConfig(msg) {
-  const t = getToken(); if (!t) { alert('Token required.'); return; }
+// ── Save config ───────────────────────────────────────────────────────────────
+async function saveConfig(msg){
+  const t=getToken();if(!t){alert('Token required.');return;}
   showToast('Saving...');
-  try {
-    const sr  = await fetch(`${API}/contents/config.json`, { headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'} });
-    const sha = (await sr.json()).sha;
-    const body = { email:{sender_email:'',app_password:'',recipient_email:''}, buckets:cfg.buckets };
-    const content = btoa(unescape(encodeURIComponent(JSON.stringify(body,null,2))));
-    const res = await fetch(`${API}/contents/config.json`, { method:'PUT', headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'}, body:JSON.stringify({message:msg,content,sha,branch:GHB}) });
-    if (!res.ok) { const e=await res.json(); throw new Error(e.message); }
-    showToast('Saved ✓'); setTimeout(()=>render(),400);
-  } catch(e) { showToast('Error: '+e.message); }
+  try{
+    const sr=await fetch(`${API}/contents/config.json`,{headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'}});
+    const sha=(await sr.json()).sha;
+    const body={email:{sender_email:'',app_password:'',recipient_email:''},buckets:cfg.buckets};
+    const content=btoa(unescape(encodeURIComponent(JSON.stringify(body,null,2))));
+    const res=await fetch(`${API}/contents/config.json`,{method:'PUT',headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:msg,content,sha,branch:GHB})});
+    if(!res.ok){const e=await res.json();throw new Error(e.message);}
+    showToast('Saved ✓');setTimeout(()=>render(),400);
+  }catch(e){showToast('Error: '+e.message);}
 }
 
 // ── Confirm ───────────────────────────────────────────────────────────────────
-function showConfirm(title, msg, cb) {
-  document.getElementById('conf-title').textContent = title;
-  document.getElementById('conf-msg').textContent   = msg;
-  confirmCb = cb; document.getElementById('confirm-modal').classList.add('open');
-}
-function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); confirmCb=null; }
-document.getElementById('conf-btn').onclick = async () => { closeConfirm(); if (confirmCb) await confirmCb(); };
+function showConf(t,m,cb){document.getElementById('conf-title').textContent=t;document.getElementById('conf-msg').textContent=m;confCb=cb;document.getElementById('conf-modal').classList.add('open');}
+function closeConf(){document.getElementById('conf-modal').classList.remove('open');confCb=null;}
+document.getElementById('conf-btn').onclick=async()=>{closeConf();if(confCb)await confCb();};
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t=document.getElementById('toast'); t.textContent=msg;
-  t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),2500);
-}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500);}
 
-// ── Drag & drop ───────────────────────────────────────────────────────────────
-function initDrag() {
-  const grid=document.getElementById('products-grid'); let src=null;
-  grid.querySelectorAll('.product-card').forEach(card=>{
-    card.addEventListener('dragstart', e=>{ if(!reorderMode)return; src=card; setTimeout(()=>card.classList.add('dragging'),0); e.dataTransfer.effectAllowed='move'; });
-    card.addEventListener('dragend',   ()=>{
-      card.classList.remove('dragging');
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      if(!reorderMode)return;
-      reorderSave(grid);
-    });
-    card.addEventListener('dragover', e=>{ if(!reorderMode)return; e.preventDefault(); if(card!==src){grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');} });
-    card.addEventListener('drop',     e=>{ if(!reorderMode)return; e.preventDefault(); if(card!==src){const cs=[...grid.querySelectorAll('.product-card')]; cs.indexOf(src)<cs.indexOf(card)?card.after(src):card.before(src);} card.classList.remove('drag-over'); });
+// ── Drag ─────────────────────────────────────────────────────────────────────
+function initDrag(){
+  const grid=document.getElementById('grid');let src=null;
+  grid.querySelectorAll('.pcard').forEach(card=>{
+    card.addEventListener('dragstart',e=>{if(!reorderMode)return;src=card;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',()=>{card.classList.remove('dragging');grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));if(!reorderMode)return;reorderSave(grid);});
+    card.addEventListener('dragover',e=>{if(!reorderMode)return;e.preventDefault();if(card!==src){grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');}});
+    card.addEventListener('drop',e=>{if(!reorderMode)return;e.preventDefault();if(card!==src){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(src)<cs.indexOf(card)?card.after(src):card.before(src);}card.classList.remove('drag-over');});
   });
-  // Touch
   let td=null,tc=null,tox=0,toy=0;
-  grid.querySelectorAll('.drag-handle').forEach(h=>{
-    h.addEventListener('touchstart',e=>{
-      if(!reorderMode)return; td=h.closest('.product-card');
-      const r=td.getBoundingClientRect(); tox=e.touches[0].clientX-r.left; toy=e.touches[0].clientY-r.top;
-      tc=td.cloneNode(true); tc.style.cssText=`position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;left:${r.left}px;top:${r.top}px`;
-      document.body.appendChild(tc); td.style.opacity='.3'; e.preventDefault();
-    },{passive:false});
-    h.addEventListener('touchmove',e=>{
-      if(!td||!tc)return; const t=e.touches[0];
-      tc.style.left=(t.clientX-tox)+'px'; tc.style.top=(t.clientY-toy)+'px';
-      const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('product-card')&&el!==td);
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      if(target)target.classList.add('drag-over'); e.preventDefault();
-    },{passive:false});
-    h.addEventListener('touchend',e=>{
-      if(!td)return; const t=e.changedTouches[0];
-      const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('product-card')&&el!==td);
-      if(target){const cs=[...grid.querySelectorAll('.product-card')]; cs.indexOf(td)<cs.indexOf(target)?target.after(td):target.before(td);}
-      td.style.opacity=''; tc.remove(); tc=null; td=null;
-      grid.querySelectorAll('.product-card').forEach(c=>c.classList.remove('drag-over'));
-      reorderSave(grid);
-    });
+  grid.querySelectorAll('.dhandle').forEach(h=>{
+    h.addEventListener('touchstart',e=>{if(!reorderMode)return;td=h.closest('.pcard');const r=td.getBoundingClientRect();tox=e.touches[0].clientX-r.left;toy=e.touches[0].clientY-r.top;tc=td.cloneNode(true);tc.style.cssText=`position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;left:${r.left}px;top:${r.top}px`;document.body.appendChild(tc);td.style.opacity='.3';e.preventDefault();},{passive:false});
+    h.addEventListener('touchmove',e=>{if(!td||!tc)return;const t=e.touches[0];tc.style.left=(t.clientX-tox)+'px';tc.style.top=(t.clientY-toy)+'px';const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));if(target)target.classList.add('drag-over');e.preventDefault();},{passive:false});
+    h.addEventListener('touchend',e=>{if(!td)return;const t=e.changedTouches[0];const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);if(target){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(td)<cs.indexOf(target)?target.after(td):target.before(td);}td.style.opacity='';tc.remove();tc=null;td=null;grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));reorderSave(grid);});
   });
 }
+function reorderSave(grid){const order=[...grid.querySelectorAll('.pcard')].map(c=>parseInt(c.dataset.idx));cfg.buckets=order.map(i=>cfg.buckets[i]);grid.querySelectorAll('.pcard').forEach((c,i)=>c.dataset.idx=i);saveConfig('Reorder products');}
 
-function reorderSave(grid) {
-  const order=[...grid.querySelectorAll('.product-card')].map(c=>parseInt(c.dataset.idx));
-  cfg.buckets=order.map(i=>cfg.buckets[i]);
-  grid.querySelectorAll('.product-card').forEach((c,i)=>c.dataset.idx=i);
-  saveConfig('Reorder products');
-}
+// ── Chart — fixed x-axis with full date range ─────────────────────────────────
+function chartData(bucket,tf){
+  const br=rows.filter(r=>bucket.retailers.some(ret=>r.name===`${bucket.label} - ${ret.name}`));
+  if(!br.length)return{labels:[],prices:[],meta:[],sparse:false};
 
-// ── Chart ─────────────────────────────────────────────────────────────────────
-function chartData(bucket, tf) {
-  const br = rows.filter(r => bucket.retailers.some(ret => r.name===`${bucket.label} - ${ret.name}`));
-  if (!br.length) return { labels:[], prices:[], meta:[] };
+  // Generate full date range for timeframe
+  const now=new Date();
+  let startDate,endDate=new Date(now);
+  endDate.setHours(23,59,59,999);
 
-  let start = null;
-  if (tf !== 'all') {
-    const days = tf==='7d'?7:tf==='14d'?14:30;
-    start = new Date(); start.setDate(start.getDate()-days); start.setHours(0,0,0,0);
+  if(tf==='all'){
+    // For 'all', use actual data range
+    const minTs=Math.min(...br.map(r=>r.ts));
+    startDate=new Date(minTs);startDate.setHours(0,0,0,0);
+  } else {
+    const days=tf==='7d'?7:tf==='14d'?14:30;
+    startDate=new Date(now);startDate.setDate(startDate.getDate()-(days-1));startDate.setHours(0,0,0,0);
   }
-  const filtered = start ? br.filter(r=>r.ts>=start) : br;
 
+  // Build data lookup by date
   const byDay={};
-  filtered.forEach(r=>{ const d=r.ts.toISOString().slice(0,10); if(!byDay[d])byDay[d]=[]; byDay[d].push(r); });
-
-  const labels=[],prices=[],meta=[];
-  Object.keys(byDay).sort().forEach(date=>{
-    const dr=byDay[date], min=Math.min(...dr.map(r=>r.price));
-    const who=[...new Set(dr.filter(r=>r.price===min).map(r=>r.name.split(' - ').slice(1).join(' - ')))];
-    labels.push(date); prices.push(min); meta.push({price:min,names:who});
+  br.filter(r=>r.ts>=startDate&&r.ts<=endDate).forEach(r=>{
+    const d=r.ts.toISOString().slice(0,10);
+    if(!byDay[d])byDay[d]=[];byDay[d].push(r);
   });
-  return {labels,prices,meta};
+
+  // Generate every day in range
+  const labels=[],prices=[],meta=[],hasData=[];
+  const cur=new Date(startDate);
+  while(cur<=endDate){
+    const d=cur.toISOString().slice(0,10);
+    labels.push(d);
+    if(byDay[d]){
+      const min=Math.min(...byDay[d].filter(r=>!r.oos).map(r=>r.price).filter(p=>!isNaN(p)));
+      if(isFinite(min)){
+        const who=[...new Set(byDay[d].filter(r=>r.price===min&&!r.oos).map(r=>r.name.split(' - ').slice(1).join(' - ')))];
+        prices.push(min);meta.push({price:min,names:who});hasData.push(true);
+      } else {prices.push(null);meta.push(null);hasData.push(false);}
+    } else {prices.push(null);meta.push(null);hasData.push(false);}
+    cur.setDate(cur.getDate()+1);
+  }
+  return{labels,prices,meta,hasData};
 }
 
-function drawChart(bucket, idx, tf) {
-  const {labels,prices,meta} = chartData(bucket, tf);
-  const canvas = document.getElementById('chart-'+idx); if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const tip = document.getElementById('tip');
-  if (charts[idx]) { try{charts[idx].destroy();}catch(e){} delete charts[idx]; }
-  const wrap = canvas.parentElement;
-  if (!labels.length) { wrap.innerHTML='<div class="no-data">No data for this timeframe</div>'; return; }
-  if (!wrap.querySelector('canvas')) { wrap.innerHTML=`<canvas id="chart-${idx}"></canvas>`; return drawChart(bucket,idx,tf); }
+function drawChart(bucket,idx,tf){
+  // Must get canvas and check width FIRST — if card is collapsed clientWidth=0
+  const canvas=document.getElementById('chart-'+idx);if(!canvas)return;
+  const wrap=canvas.parentElement;
+  if(!wrap||wrap.clientWidth<10){setTimeout(()=>drawChart(bucket,idx,tf),120);return;}
+  const{labels,prices,meta,hasData}=chartData(bucket,tf);
+  const ctx=canvas.getContext('2d');
+  const tip=document.getElementById('ctip');
+  if(charts[idx]){try{charts[idx].destroy();}catch(e){}delete charts[idx];}
+  if(!labels.length){wrap.innerHTML='<div class="nodata">No data available</div>';return;}
 
-  const dpr=window.devicePixelRatio||1, W=wrap.clientWidth, H=wrap.clientHeight||135;
-  canvas.width=W*dpr; canvas.height=H*dpr; ctx.scale(dpr,dpr);
+  const dpr=window.devicePixelRatio||1,W=wrap.clientWidth,H=wrap.clientHeight||140;
+  canvas.width=W*dpr;canvas.height=H*dpr;ctx.scale(dpr,dpr);
 
   const pad={top:10,right:12,bottom:26,left:52};
-  const cW=W-pad.left-pad.right, cH=H-pad.top-pad.bottom;
-  const minP=Math.min(...prices)*0.986, maxP=Math.max(...prices)*1.014, range=maxP-minP||1;
+  const cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
 
-  // x: index 0 is leftmost, last index is rightmost
-  const xPos = i => pad.left + (labels.length>1 ? (i/(labels.length-1))*cW : cW/2);
-  const yPos = p => pad.top + cH - ((p-minP)/range)*cH;
+  // Price range from actual data only
+  const dataPoints=prices.filter(p=>p!==null);
+  if(!dataPoints.length){wrap.innerHTML='<div class="nodata">No data for this timeframe</div>';return;}
+  const minP=Math.min(...dataPoints)*0.986,maxP=Math.max(...dataPoints)*1.014,range=maxP-minP||1;
 
-  // Grid
-  ctx.strokeStyle='#2e3347'; ctx.lineWidth=1;
+  // X position: evenly spaced across full date range
+  const xPos=i=>pad.left+(labels.length>1?(i/(labels.length-1))*cW:cW/2);
+  const yPos=p=>pad.top+cH-((p-minP)/range)*cH;
+
+  // Grid lines
+  ctx.strokeStyle='#2e3347';ctx.lineWidth=1;
   [0,.33,.66,1].forEach(t=>{
-    const y=pad.top+t*cH; ctx.beginPath(); ctx.moveTo(pad.left,y); ctx.lineTo(pad.left+cW,y); ctx.stroke();
-    ctx.fillStyle='#7b82a0'; ctx.font='8px DM Mono,monospace'; ctx.textAlign='right';
-    ctx.fillText('$'+(maxP-t*range).toFixed(0), pad.left-4, y+3);
+    const y=pad.top+t*cH;ctx.beginPath();ctx.moveTo(pad.left,y);ctx.lineTo(pad.left+cW,y);ctx.stroke();
+    ctx.fillStyle='#8a92b0';ctx.font='8px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText('$'+(maxP-t*range).toFixed(0),pad.left-4,y+3);
   });
 
-  // Fill
-  const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
-  grad.addColorStop(0,'rgba(79,142,247,.2)'); grad.addColorStop(1,'rgba(79,142,247,0)');
-  ctx.beginPath(); ctx.moveTo(xPos(0),yPos(prices[0]));
-  prices.forEach((p,i)=>{ if(i>0)ctx.lineTo(xPos(i),yPos(p)); });
-  ctx.lineTo(xPos(prices.length-1),pad.top+cH); ctx.lineTo(xPos(0),pad.top+cH);
-  ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
-
-  // Line
-  ctx.beginPath(); ctx.strokeStyle='#4f8ef7'; ctx.lineWidth=2; ctx.lineJoin='round';
-  prices.forEach((p,i)=>i===0?ctx.moveTo(xPos(i),yPos(p)):ctx.lineTo(xPos(i),yPos(p)));
-  ctx.stroke();
-
-  // Dots
+  // Draw filled segments between consecutive data points
+  const segments=[];let seg=null;
   prices.forEach((p,i)=>{
-    ctx.beginPath(); ctx.arc(xPos(i),yPos(p),2.5,0,Math.PI*2);
-    ctx.fillStyle='#4f8ef7'; ctx.fill(); ctx.strokeStyle='#0f1117'; ctx.lineWidth=1.5; ctx.stroke();
+    if(p!==null){if(!seg){seg={start:i,pts:[]}}seg.pts.push({i,p});}
+    else{if(seg){segments.push(seg);seg=null;}}
+  });
+  if(seg)segments.push(seg);
+
+  segments.forEach(s=>{
+    if(s.pts.length<2)return;
+    const grad=ctx.createLinearGradient(0,pad.top,0,pad.top+cH);
+    grad.addColorStop(0,'rgba(79,142,247,.18)');grad.addColorStop(1,'rgba(79,142,247,0)');
+    ctx.beginPath();ctx.moveTo(xPos(s.pts[0].i),yPos(s.pts[0].p));
+    s.pts.forEach(({i,p},j)=>{if(j>0)ctx.lineTo(xPos(i),yPos(p));});
+    ctx.lineTo(xPos(s.pts[s.pts.length-1].i),pad.top+cH);ctx.lineTo(xPos(s.pts[0].i),pad.top+cH);
+    ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    ctx.beginPath();ctx.strokeStyle='#4f8ef7';ctx.lineWidth=2;ctx.lineJoin='round';
+    s.pts.forEach(({i,p},j)=>{j===0?ctx.moveTo(xPos(i),yPos(p)):ctx.lineTo(xPos(i),yPos(p));});
+    ctx.stroke();
   });
 
-  // X labels — always show index 0 and last, plus evenly spaced
-  ctx.fillStyle='#7b82a0'; ctx.font='8px DM Mono,monospace'; ctx.textAlign='center';
-  const maxLbls = Math.max(2, Math.floor(cW/55));
-  const step = Math.max(1, Math.floor((labels.length-1)/(maxLbls-1)));
-  const show = new Set([0, labels.length-1]);
-  for (let i=step; i<labels.length-1; i+=step) show.add(i);
+  // Dots on data points only
+  prices.forEach((p,i)=>{
+    if(p===null)return;
+    ctx.beginPath();ctx.arc(xPos(i),yPos(p),2.5,0,Math.PI*2);
+    ctx.fillStyle='#4f8ef7';ctx.fill();ctx.strokeStyle='#0f1117';ctx.lineWidth=1.5;ctx.stroke();
+  });
+
+  // X axis labels — show first, last, and evenly spaced
+  ctx.fillStyle='#8a92b0';ctx.font='8px DM Mono,monospace';ctx.textAlign='center';
+  const maxLbls=Math.max(2,Math.floor(cW/55));
+  const step=Math.max(1,Math.floor((labels.length-1)/(maxLbls-1)));
+  const show=new Set([0,labels.length-1]);
+  for(let i=step;i<labels.length-1;i+=step)show.add(i);
   show.forEach(i=>{
-    const d=new Date(labels[i]+'T12:00:00');
-    ctx.fillText(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}), xPos(i), H-5);
+    const d=new Date(labels[i]+'T12:00:00Z');
+    ctx.fillText(d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),xPos(i),H-4);
   });
 
-  charts[idx] = { labels, prices, meta, xPos, yPos, destroy:()=>{} };
+  charts[idx]={labels,prices,meta,xPos,yPos,destroy:()=>{}};
 
-  canvas.onmousemove = e => {
-    const rect=canvas.getBoundingClientRect(), mx=e.clientX-rect.left;
-    const c=charts[idx]; if(!c)return;
-    let near=0, md=Infinity;
-    c.labels.forEach((_,i)=>{ const d=Math.abs(c.xPos(i)-mx); if(d<md){md=d;near=i;} });
-    if(md>40){tip.classList.remove('on');return;}
-    const m=c.meta[near], date=new Date(c.labels[near]+'T12:00:00');
-    tip.innerHTML=`<div class="tip-date">${date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div><div class="tip-price">$${m.price.toFixed(2)}</div><div class="tip-store">Lowest at: ${m.names.join(', ')}</div>`;
+  canvas.onmousemove=e=>{
+    const rect=canvas.getBoundingClientRect(),mx=e.clientX-rect.left;
+    const c=charts[idx];if(!c)return;
+    let near=0,md=Infinity;
+    c.labels.forEach((_,i)=>{const d=Math.abs(c.xPos(i)-mx);if(d<md){md=d;near=i;}});
+    if(md>40||!c.meta[near]){tip.classList.remove('on');return;}
+    const m=c.meta[near],date=new Date(c.labels[near]+'T12:00:00Z');
+    tip.innerHTML=`<div class="ctip-date">${date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div><div class="ctip-price">$${m.price.toFixed(2)}</div><div class="ctip-store">Lowest at: ${m.names.join(', ')}</div>`;
     tip.classList.add('on');
-    const tx=e.clientX+12;
-    tip.style.left=(tx+155>window.innerWidth?e.clientX-162:tx)+'px';
-    tip.style.top=(e.clientY-14)+'px';
+    const tx=e.clientX+12;tip.style.left=(tx+155>window.innerWidth?e.clientX-162:tx)+'px';tip.style.top=(e.clientY-14)+'px';
   };
   canvas.onmouseleave=()=>tip.classList.remove('on');
 }
 
-function changeTf(btn, idx, tf) {
-  btn.closest('.tf-btns').querySelectorAll('.tf-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+function changeTf(btn,idx,tf){
+  btn.closest('.tfbtns').querySelectorAll('.tfbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
   const wrap=document.getElementById('chart-'+idx)?.parentElement;
-  if(wrap){ wrap.innerHTML=`<canvas id="chart-${idx}"></canvas>`; }
-  drawChart(cfg.buckets[idx], idx, tf);
+  if(wrap){wrap.innerHTML=`<canvas id="chart-${idx}"></canvas>`;}
+  drawChart(cfg.buckets[idx],idx,tf);
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 loadData();
-window.addEventListener('resize', ()=>{
-  if(!cfg)return;
-  cfg.buckets.forEach((b,i)=>{ if(cState[i]!==false)drawChart(b,i,getTf(i)); });
-});
+window.addEventListener('resize',()=>{if(!cfg)return;cfg.buckets.forEach((b,i)=>{if(cState[i]!==false)drawChart(b,i,getTf(i));});});
 </script>
 </body>
 </html>
