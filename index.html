@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Price Tracker v19</title>
+  <title>Price Tracker v20</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
   <style>
@@ -18,12 +18,14 @@
     body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:16px}
 
     /* ── Header ── */
-    header{background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:12px 16px}
+    header{background:var(--bg);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;padding:16px 28px}
     .hdr-top{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
-    .hdr-left h1{font-size:1.15rem;font-weight:600}
+    .hdr-left h1{font-size:1.4rem;font-weight:600;letter-spacing:-0.3px}
     .hdr-left h1 span{color:var(--accent)}
-    .hdr-meta{font-size:0.68rem;color:var(--muted);font-family:var(--mono);margin-top:2px}
+    .hdr-meta{font-size:0.74rem;color:var(--muted);font-family:var(--mono);margin-top:5px;display:flex;align-items:center;gap:12px}
     .hdr-error{color:var(--yellow);display:none}
+    .hdr-stat{display:inline-flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:0.68rem;font-family:var(--mono);color:var(--muted)}
+    .hdr-stat b{color:var(--text);font-weight:600}
     .hdr-controls{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;flex-shrink:0}
 
     /* Status */
@@ -39,7 +41,7 @@
     .mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
 
     /* Buttons */
-    .btn{padding:7px 13px;border-radius:8px;font-size:0.78rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;line-height:1}
+    .btn{padding:8px 15px;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:var(--font);border:1px solid var(--border);transition:all .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent;line-height:1}
     .btn-sec{background:var(--surface2);color:var(--text)}.btn-sec:active{border-color:var(--accent)}
     .btn-pri{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-pri:active{background:#3a7ae0}
     .btn-pau{background:rgba(247,201,72,.12);color:var(--yellow);border-color:rgba(247,201,72,.3)}
@@ -58,7 +60,7 @@
     main{max-width:1080px;margin:0 auto;padding:16px 12px}
     #loading,#err{text-align:center;padding:60px 16px;color:var(--muted);font-family:var(--mono);font-size:0.82rem}
     #err{color:var(--red)}
-    .grid{display:grid;gap:11px}
+    .grid{display:grid;gap:12px}
 
     /* Card */
     .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
@@ -67,7 +69,7 @@
     @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 
     /* Card header */
-    .card-hdr{padding:13px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+    .card-hdr{padding:15px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
     .card-hdr:active{background:rgba(255,255,255,.02);border-radius:var(--radius)}
 
     /* Drag handle */
@@ -77,13 +79,13 @@
     .reorder-mode .dhandle{display:flex}
 
     /* Image */
-    .pimg,.pimg-ph{width:50px;height:50px;border-radius:8px;flex-shrink:0;border:1px solid var(--border)}
+    .pimg,.pimg-ph{width:56px;height:56px;border-radius:9px;flex-shrink:0;border:1px solid var(--border)}
     .pimg{object-fit:cover;background:var(--surface2)}
     .pimg-ph{background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:1rem}
 
     /* Header info */
     .card-info{flex:1;min-width:0}
-    .pname{font-size:0.92rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
+    .pname{font-size:0.95rem;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)}
     .psub{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
     .rcount{font-size:0.66rem;color:var(--muted);font-family:var(--mono)}
 
@@ -94,11 +96,11 @@
     .warn-wrap:hover .warn-tip,.warn-wrap:active .warn-tip{opacity:1}
 
     /* Price block */
-    .card-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-    .price-blk{text-align:right}
-    .price-cur{font-size:1.2rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1.1}
+    .card-right{display:flex;align-items:center;gap:7px;flex-shrink:1;min-width:0}
+    .price-blk{text-align:right;min-width:60px}
+    .price-cur{font-size:1.3rem;font-weight:600;font-family:var(--mono);color:var(--green);line-height:1.1}
     .price-cur.none{color:var(--muted);font-size:.85rem}
-    .price-vs{font-size:0.61rem;font-family:var(--mono);margin-top:2px;white-space:nowrap}
+    .price-vs{font-size:0.65rem;font-family:var(--mono);margin-top:3px;white-space:nowrap}
     .pv-below{color:var(--green)}.pv-above{color:var(--orange)}.pv-near{color:var(--muted)}
 
     /* Card ⋯ menu */
@@ -118,19 +120,19 @@
 
     /* Retailers */
     .rets{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:5px}
-    .rrow{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;border-radius:8px;background:var(--surface2);gap:8px}
+    .rrow{display:flex;align-items:center;justify-content:space-between;padding:10px 13px;border-radius:8px;background:var(--surface2);gap:8px}
     .rrow.best-row{border-left:3px solid var(--green)}
     .rrow.fail-row{opacity:.55}
     .rrow.err-row{border-left:3px solid var(--yellow)}
     .rinfo{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0;flex:1}
-    .rname a{color:var(--text);text-decoration:none;font-size:0.85rem;font-weight:500}
+    .rname a{color:var(--text);text-decoration:none;font-size:0.88rem;font-weight:500}
     .rname a:active{color:var(--accent)}
     .tag{font-size:0.58rem;padding:2px 6px;border-radius:20px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;flex-shrink:0}
     .tag-best{background:rgba(52,217,139,.15);color:var(--green);border:1px solid rgba(52,217,139,.3)}
     .tag-nd{background:rgba(247,92,92,.15);color:var(--red);border:1px solid rgba(247,92,92,.3)}
     .tag-err{background:rgba(247,201,72,.15);color:var(--yellow);border:1px solid rgba(247,201,72,.3)}
     .tag-oos{background:rgba(247,156,79,.15);color:var(--orange);border:1px solid rgba(247,156,79,.3)}
-    .rprice{font-family:var(--mono);font-size:0.85rem;font-weight:600;flex-shrink:0}
+    .rprice{font-family:var(--mono);font-size:0.88rem;font-weight:600;flex-shrink:0}
     .rprice.best{color:var(--green)}.rprice.na{color:var(--muted);font-style:italic;font-size:.72rem}
 
     /* Add retailer */
@@ -146,7 +148,7 @@
     .gsec{padding:12px 14px 16px}
     .gctrl{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;gap:6px}
     .glbl{font-size:0.63rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-    .tfbtns{display:flex;gap:3px}
+    .tfbtns{display:flex;gap:2px;flex-wrap:nowrap}
     .tfbtn{padding:4px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:0.67rem;cursor:pointer;font-family:var(--mono);-webkit-tap-highlight-color:transparent}
     .tfbtn:active{border-color:var(--accent)}
     .tfbtn.active{background:var(--accent);border-color:var(--accent);color:#fff}
@@ -193,6 +195,13 @@
     .toast{position:fixed;bottom:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.75rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .2s;z-index:300;pointer-events:none}
     .toast.on{opacity:1}
 
+    @media(min-width:1100px){
+      .grid{grid-template-columns:1fr 1fr}
+      main{padding:20px 28px}
+    }
+    @media(min-width:768px) and (max-width:1099px){
+      main{padding:18px 22px}
+    }
     /* ── Desktop: > 767px ── */
     @media(min-width:768px){
       .mob-only{display:none!important}
@@ -209,20 +218,29 @@
       .hdr-meta{font-size:0.62rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
       .btn{padding:7px 11px;font-size:0.76rem}
       main{padding:10px 10px}
-      .card-hdr{padding:11px 12px;gap:9px}
-      .pimg,.pimg-ph{width:44px;height:44px}
+      .card-hdr{padding:10px 11px;gap:7px}
+      .pimg,.pimg-ph{width:38px;height:38px;border-radius:6px}
       .pname{font-size:0.87rem}
       .rcount{font-size:0.63rem}
-      .price-cur{font-size:1.05rem}
+      .price-cur{font-size:1rem}
+      .card-right{gap:5px}
+      .price-blk{min-width:55px}
       .price-vs{font-size:0.59rem}
-      .mbtn{width:34px;height:34px}
+      .mbtn{width:30px;height:30px;font-size:1rem}
       .mitem{padding:13px 12px;font-size:0.84rem}
-      .tfbtn{padding:6px 11px;font-size:0.69rem}
+      .tfbtn{padding:5px 8px;font-size:0.65rem}
       .gwrap{height:115px}
       .rrow{padding:9px 10px}
       .rname a{font-size:0.82rem}
       .rprice{font-size:0.82rem}
       .mob-dd{min-width:185px}
+      .pimg,.pimg-ph{display:none}
+      .card-right{gap:4px;flex-shrink:0}
+      .price-blk{min-width:58px;max-width:100px}
+      .price-vs{font-size:0.55rem;white-space:normal;line-height:1.3;text-align:right}
+      .gctrl{flex-wrap:wrap;gap:4px}
+      .tfbtns{gap:2px}
+      .tfbtn{padding:4px 7px;font-size:0.62rem}
     }
   </style>
 </head>
@@ -235,6 +253,8 @@
       <div class="hdr-meta">
         <span id="last-updated">Loading...</span>
         <span class="hdr-error" id="hdr-err"></span>
+        <span class="hdr-stat desk-only"><b id="stat-products">—</b> products</span>
+        <span class="hdr-stat desk-only"><b id="stat-retailers">—</b> retailers</span>
       </div>
     </div>
     <div class="hdr-controls">
@@ -438,6 +458,8 @@ function render(){
   });
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
+  const sp=document.getElementById('stat-products');if(sp)sp.textContent=cfg.buckets.length;
+  const sr=document.getElementById('stat-retailers');if(sr)sr.textContent=cfg.buckets.reduce((a,b)=>a+b.retailers.length,0);
   if(reorderMode)grid.classList.add('reorder-mode');
   cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:!mobile)drawChart(b,i,'all');});
   updTogBtn();initDrag();closeAllMenus();
