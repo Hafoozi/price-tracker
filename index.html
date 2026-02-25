@@ -272,7 +272,7 @@
         <div class="mob-dd-wrap">
           <button class="btn btn-sec" onclick="toggleMobMenu(event)">☰</button>
           <div class="mob-dd hidden" id="mob-dd">
-            <div class="mitem" onclick="smartToggle();closeMobMenu()">Toggle All</div>
+            <div class="mitem" id="mob-tog-item" onclick="smartToggle();closeMobMenu()">Expand All</div>
             <div class="mitem" onclick="enterReorder();closeMobMenu()">Reorder Cards</div>
             <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
             <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
@@ -449,13 +449,13 @@ function render(){
   Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
   const mobile=window.innerWidth<=767;
   cfg.buckets.forEach((b,i)=>{
-    const open=cState[i]!==undefined?cState[i]:!mobile;
+    const open=cState[i]!==undefined?cState[i]:false;
     grid.appendChild(buildCard(b,i,open));
   });
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
   if(reorderMode)grid.classList.add('reorder-mode');
-  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:!mobile)drawChart(b,i,'all');});
+  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:false)drawChart(b,i,'all');});
   updTogBtn();initDrag();closeAllMenus();
 }
 
@@ -472,7 +472,9 @@ function smartToggle(){
 }
 function updTogBtn(){
   const anyOpen=cfg.buckets.some((_,i)=>{const c=document.querySelector(`.pcard[data-idx="${i}"]`);return c&&c.querySelector('.card-body').classList.contains('open');});
-  const btn=document.getElementById('tog-btn');if(btn)btn.textContent=anyOpen?'Collapse All':'Expand All';
+  const label=anyOpen?'Collapse All':'Expand All';
+  const btn=document.getElementById('tog-btn');if(btn)btn.textContent=label;
+  const mobItem=document.getElementById('mob-tog-item');if(mobItem)mobItem.textContent=label;
 }
 
 // ── Retailer data helpers ─────────────────────────────────────────────────────
