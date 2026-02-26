@@ -104,18 +104,28 @@ def is_out_of_stock(soup, url: str) -> bool:
             data = json.loads(script.string or "")
             items = data if isinstance(data, list) else [data]
             for item in items:
-                offers = item.get("offers", {})
-                offer_list = offers if isinstance(offers, list) else [offers]
-                for offer in offer_list:
+                # Collect all offers including ProductGroup/hasVariant pattern
+                all_offers = []
+                direct = item.get("offers", {})
+                if direct:
+                    all_offers.extend(direct if isinstance(direct, list) else [direct])
+                for variant in item.get("hasVariant", []):
+                    v_offer = variant.get("offers", {})
+                    if v_offer:
+                        all_offers.extend(v_offer if isinstance(v_offer, list) else [v_offer])
+
+                # If variant ID in URL, only check matching offers; else check all
+                if variant_id:
+                    matched = [o for o in all_offers if variant_id in o.get("url", "")]
+                    candidate_offers = matched if matched else all_offers
+                else:
+                    candidate_offers = all_offers
+
+                oos_signals = ["OutOfStock", "SoldOut", "Discontinued", "BackOrder"]
+                for offer in candidate_offers:
                     avail = offer.get("availability", "")
-                    offer_url = offer.get("url", "")
-                    # If we have a variant ID, only trust offers for that variant
-                    if variant_id and offer_url and variant_id not in offer_url:
-                        continue
-                    oos_signals = ["OutOfStock", "SoldOut", "Discontinued", "BackOrder"]
                     if any(x in avail for x in oos_signals):
                         return True
-                    # Explicit InStock means we can stop — definitely available
                     if "InStock" in avail:
                         return False
         except Exception:
@@ -145,14 +155,35 @@ def is_out_of_stock(soup, url: str) -> bool:
 
     return False
 
+HEADERS_MOBILE = {
+    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+}
+
 def scrape_product(url: str, label: str, retailer: str) -> dict:
     result = {"price": None, "image": None, "oos": False}
     name   = f"{label} - {retailer}"
-    try:
-        response = requests.get(url, headers=HEADERS, timeout=15)
-        response.raise_for_status()
-    except requests.RequestException as e:
-        print(f"  [ERROR] {name}: {e}")
+
+    # Try desktop UA first, fall back to mobile UA if blocked (403/429/503)
+    response = None
+    for hdrs in [HEADERS, HEADERS_MOBILE]:
+        try:
+            r = requests.get(url, headers=hdrs, timeout=15)
+            if r.status_code == 200:
+                response = r
+                break
+            elif r.status_code in (403, 429, 503):
+                print(f"  [WARN] {name}: HTTP {r.status_code}, retrying with alternate UA...")
+                time.sleep(3)
+            else:
+                r.raise_for_status()
+        except requests.RequestException as e:
+            print(f"  [ERROR] {name}: {e}")
+            return result
+
+    if response is None:
+        print(f"  [ERROR] {name}: blocked on all attempts (403/429/503)")
         return result
 
     soup = BeautifulSoup(response.text, "html.parser")
@@ -170,28 +201,40 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
             data  = json.loads(script.string)
             items = data if isinstance(data, list) else [data]
             for item in items:
-                if result["price"] is None:
-                    offers = item.get("offers", {})
-                    offer_list = offers if isinstance(offers, list) else [offers]
-                    for offer in offer_list:
-                        offer_url = offer.get("url", "")
-                        # If we have a variant ID, prefer the offer matching that variant
-                        if variant_id and offer_url and variant_id not in offer_url:
-                            continue
+                # ── Collect all offers from this item ──
+                # Handles three structures:
+                #   1. Standard: item.offers (object or list)
+                #   2. ProductGroup: item.hasVariant[].offers (JSACoffee pattern)
+                all_offers = []
+                direct_offers = item.get("offers", {})
+                if direct_offers:
+                    if isinstance(direct_offers, list):
+                        all_offers.extend(direct_offers)
+                    elif isinstance(direct_offers, dict):
+                        all_offers.append(direct_offers)
+                # ProductGroup pattern — offers nested inside hasVariant
+                for variant in item.get("hasVariant", []):
+                    v_offer = variant.get("offers", {})
+                    if isinstance(v_offer, list):
+                        all_offers.extend(v_offer)
+                    elif isinstance(v_offer, dict):
+                        all_offers.append(v_offer)
+
+                if result["price"] is None and all_offers:
+                    # First pass: try to match variant ID if we have one
+                    matched_offers = []
+                    if variant_id:
+                        matched_offers = [o for o in all_offers if variant_id in o.get("url", "")]
+                    # Fall back to all offers if no variant match
+                    candidate_offers = matched_offers if matched_offers else all_offers
+                    for offer in candidate_offers:
                         price_raw = offer.get("price") or offer.get("lowPrice")
                         if price_raw:
                             price = clean_price(str(price_raw))
                             if price and price > 0:
                                 result["price"] = price
                                 break
-                    # If no variant match found, fall back to first offer
-                    if result["price"] is None:
-                        offer = offers[0] if isinstance(offers, list) else offers
-                        price_raw = offer.get("price") or offer.get("lowPrice")
-                        if price_raw:
-                            price = clean_price(str(price_raw))
-                            if price and price > 0:
-                                result["price"] = price
+
                 if result["image"] is None:
                     img = item.get("image")
                     if isinstance(img, list): img = img[0]
