@@ -272,7 +272,7 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
             if el:
                 # Skip if this element or any parent looks like a compare-at container
                 skip = False
-                for ancestor in [el] + el.parents:
+                for ancestor in [el] + list(el.parents):
                     cls = " ".join(ancestor.get("class", []))
                     if COMPARE_AT_PATTERN.search(cls):
                         skip = True
