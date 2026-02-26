@@ -104,7 +104,7 @@ def is_out_of_stock(soup, url: str) -> bool:
     # 1. JSON-LD structured data — check all offers, prefer variant-matched one
     for script in soup.find_all("script", type="application/ld+json"):
         try:
-            data = json.loads(script.string or "")
+            data = json.loads(script.string or '', strict=False)
             items = data if isinstance(data, list) else [data]
             for item in items:
                 # Collect all offers including ProductGroup/hasVariant pattern
@@ -207,7 +207,8 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
 
     for script in soup.find_all("script", type="application/ld+json"):
         try:
-            data  = json.loads(script.string)
+            # Use strict=False to handle invalid control chars in JSON strings (e.g. BrakeFreeTech)
+            data  = json.loads(script.string or '', strict=False)
             items = data if isinstance(data, list) else [data]
             for item in items:
                 # ── Collect all offers from this item ──
