@@ -32,8 +32,11 @@ def load_alerted() -> dict:
         return json.load(f)
 
 def save_alerted(data: dict):
+    # Prune entries older than 2 days to prevent stale suppression
+    cutoff = (datetime.now() - timedelta(days=2)).strftime("%Y-%m-%d")
+    pruned = {k: v for k, v in data.items() if v >= cutoff}
     with open(ALERTED_FILE, "w") as f:
-        json.dump(data, f, indent=2)
+        json.dump(pruned, f, indent=2)
 
 def already_alerted_today(alerted: dict, name: str) -> bool:
     today = datetime.now().strftime("%Y-%m-%d")
@@ -106,13 +109,19 @@ def is_out_of_stock(soup, url: str) -> bool:
             for item in items:
                 # Collect all offers including ProductGroup/hasVariant pattern
                 all_offers = []
-                direct = item.get("offers", {})
-                if direct:
-                    all_offers.extend(direct if isinstance(direct, list) else [direct])
-                for variant in item.get("hasVariant", []):
-                    v_offer = variant.get("offers", {})
-                    if v_offer:
-                        all_offers.extend(v_offer if isinstance(v_offer, list) else [v_offer])
+                direct = item.get("offers")
+                if isinstance(direct, dict):
+                    all_offers.append(direct)
+                elif isinstance(direct, list):
+                    all_offers += [o for o in direct if isinstance(o, dict)]
+                for variant in (item.get("hasVariant") or []):
+                    if not isinstance(variant, dict):
+                        continue
+                    v_offer = variant.get("offers")
+                    if isinstance(v_offer, dict):
+                        all_offers.append(v_offer)
+                    elif isinstance(v_offer, list):
+                        all_offers += [o for o in v_offer if isinstance(o, dict)]
 
                 # If variant ID in URL, only check matching offers; else check all
                 if variant_id:
@@ -206,19 +215,20 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
                 #   1. Standard: item.offers (object or list)
                 #   2. ProductGroup: item.hasVariant[].offers (JSACoffee pattern)
                 all_offers = []
-                direct_offers = item.get("offers", {})
-                if direct_offers:
-                    if isinstance(direct_offers, list):
-                        all_offers.extend(direct_offers)
-                    elif isinstance(direct_offers, dict):
-                        all_offers.append(direct_offers)
+                direct_offers = item.get("offers")
+                if isinstance(direct_offers, dict):
+                    all_offers.append(direct_offers)
+                elif isinstance(direct_offers, list):
+                    all_offers += [o for o in direct_offers if isinstance(o, dict)]
                 # ProductGroup pattern — offers nested inside hasVariant
-                for variant in item.get("hasVariant", []):
-                    v_offer = variant.get("offers", {})
-                    if isinstance(v_offer, list):
-                        all_offers.extend(v_offer)
-                    elif isinstance(v_offer, dict):
+                for variant in (item.get("hasVariant") or []):
+                    if not isinstance(variant, dict):
+                        continue
+                    v_offer = variant.get("offers")
+                    if isinstance(v_offer, dict):
                         all_offers.append(v_offer)
+                    elif isinstance(v_offer, list):
+                        all_offers += [o for o in v_offer if isinstance(o, dict)]
 
                 if result["price"] is None and all_offers:
                     # First pass: try to match variant ID if we have one
@@ -365,6 +375,23 @@ def send_email(config: dict, subject: str, html: str):
     except Exception as e:
         print(f"\n  [EMAIL ERROR] {e}")
 
+def send_staleness_alert(config: dict, stale_products: list[str], hours: int):
+    """Send a single email if any product hasn't been updated in over `hours` hours."""
+    subject = f"⚠️ Price Tracker — Data Stale ({hours}h+)"
+    items = "".join(f"<li style='padding:4px 0'>{p}</li>" for p in stale_products)
+    html = f"""<html><body style='font-family:Arial,sans-serif'>
+    <h2 style='color:#e74c3c'>⚠️ Stale Price Data Detected</h2>
+    <p>The following products have not been updated in over <strong>{hours} hours</strong>,
+    which may indicate a scraper failure:</p>
+    <ul style='line-height:1.8'>{items}</ul>
+    <p>Check your <a href='https://github.com/Hafoozi/price-tracker/actions'>GitHub Actions logs</a>
+    for errors.</p>
+    <p style='color:#888;font-size:12px;margin-top:20px'>
+      Checked on {datetime.now().strftime("%B %d, %Y at %I:%M %p")}
+    </p>
+    </body></html>"""
+    send_email(config, subject, html)
+
 def send_alert(config: dict, alerts: list[dict]):
     if not alerts: return
     subject = f"🔔 Price Drop Alert — {len(alerts)} item(s) dropped!"
@@ -497,6 +524,31 @@ def run(weekly: bool = False):
         send_weekly_summary(config, buckets, current_prices)
 
     save_alerted(alerted)
+
+    # ── Staleness check — alert if any product hasn't logged data in 24h ──
+    STALE_HOURS = 24
+    stale = []
+    if os.path.exists(PRICE_LOG):
+        with open(PRICE_LOG, "r", newline="") as f:
+            all_rows = list(csv.DictReader(f))
+        cutoff_ts = datetime.now() - timedelta(hours=STALE_HOURS)
+        # Build set of all tracked product names from config
+        tracked = {f"{b['label']} - {r['name']}" for b in buckets for r in b["retailers"]}
+        for name in tracked:
+            product_rows = [r for r in all_rows if r["name"] == name]
+            if not product_rows:
+                stale.append(f"{name} (no data yet)")
+            else:
+                latest_ts = datetime.strptime(product_rows[-1]["timestamp"], "%Y-%m-%d %H:%M:%S")
+                if latest_ts < cutoff_ts:
+                    hours_ago = int((datetime.now() - latest_ts).total_seconds() / 3600)
+                    stale.append(f"{name} (last seen {hours_ago}h ago)")
+    if stale:
+        print(f"\n  [STALE] {len(stale)} product(s) have data older than {STALE_HOURS}h — sending alert")
+        send_staleness_alert(config, stale, STALE_HOURS)
+    else:
+        print(f"\n  [OK] All products have fresh data (within {STALE_HOURS}h)")
+
     print(f"\n{'='*55}\n")
 
 if __name__ == "__main__":
