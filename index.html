@@ -141,6 +141,9 @@
     .addr-form input{flex:1;min-width:110px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;font-family:var(--font);outline:none}
     .addr-form input:focus{border-color:var(--accent)}
     .btn-addr{font-size:0.7rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:6px 10px;cursor:pointer}
+    .btn-del-ret{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.75rem;padding:2px 5px;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .15s}
+    .rrow:hover .btn-del-ret{opacity:1}
+    .btn-del-ret:hover{color:#e74c3c;background:rgba(231,76,60,.1)}
     .btn-addr:active{border-color:var(--accent);color:var(--accent)}
 
     /* Graph */
@@ -272,7 +275,7 @@
         <div class="mob-dd-wrap">
           <button class="btn btn-sec" onclick="toggleMobMenu(event)">☰</button>
           <div class="mob-dd hidden" id="mob-dd">
-            <div class="mitem" id="mob-tog-item" onclick="smartToggle();closeMobMenu()">Expand All</div>
+            <div class="mitem" onclick="smartToggle();closeMobMenu()">Toggle All</div>
             <div class="mitem" onclick="enterReorder();closeMobMenu()">Reorder Cards</div>
             <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
             <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
@@ -449,13 +452,13 @@ function render(){
   Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
   const mobile=window.innerWidth<=767;
   cfg.buckets.forEach((b,i)=>{
-    const open=cState[i]!==undefined?cState[i]:false;
+    const open=cState[i]!==undefined?cState[i]:!mobile;
     grid.appendChild(buildCard(b,i,open));
   });
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
   if(reorderMode)grid.classList.add('reorder-mode');
-  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:false)drawChart(b,i,'all');});
+  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:!mobile)drawChart(b,i,'all');});
   updTogBtn();initDrag();closeAllMenus();
 }
 
@@ -472,9 +475,7 @@ function smartToggle(){
 }
 function updTogBtn(){
   const anyOpen=cfg.buckets.some((_,i)=>{const c=document.querySelector(`.pcard[data-idx="${i}"]`);return c&&c.querySelector('.card-body').classList.contains('open');});
-  const label=anyOpen?'Collapse All':'Expand All';
-  const btn=document.getElementById('tog-btn');if(btn)btn.textContent=label;
-  const mobItem=document.getElementById('mob-tog-item');if(mobItem)mobItem.textContent=label;
+  const btn=document.getElementById('tog-btn');if(btn)btn.textContent=anyOpen?'Collapse All':'Expand All';
 }
 
 // ── Retailer data helpers ─────────────────────────────────────────────────────
@@ -574,7 +575,8 @@ function buildCard(bucket,idx,isOpen){
         ${r.error?'<span class="tag tag-err">Failed</span>':''}
         ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
-      <div class="rprice ${r.oos?'oos-price':isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>`;
+      <div class="rprice ${r.oos?'oos-price':isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>
+      <button class="btn-del-ret" title="Remove retailer" onclick="event.stopPropagation();delRetailer(${idx},${rets.indexOf(r)})">✕</button>`;
     retEl.appendChild(row);
   });
 
@@ -674,7 +676,17 @@ async function addRet(btn,idx){
   if(!n||!u){alert('Enter retailer name and URL.');return;}
   cfg.buckets[idx].retailers.push({name:n,url:u});await saveConfig('Add retailer '+n);
 }
-function delBucket(idx){showConf('Delete Product?',`Remove "${cfg.buckets[idx].label}"? Historical data is kept.`,async()=>{cfg.buckets.splice(idx,1);await saveConfig('Delete product');});}
+function delBucket(idx){const lbl=cfg.buckets[idx].label;showConf('Delete Product?',`Remove "${lbl}"?\n\nRemember to manually delete all rows for "${lbl}" from price_history.csv in GitHub.`,async()=>{cfg.buckets.splice(idx,1);await saveConfig('Delete: '+lbl);});}
+
+function delRetailer(bucketIdx,retIdx){
+  const lbl=cfg.buckets[bucketIdx].label;
+  const rname=cfg.buckets[bucketIdx].retailers[retIdx].name;
+  const csvKey=`${lbl} - ${rname}`;
+  showConf('Delete Retailer?',`Remove "${rname}" from "${lbl}"?\n\nRemember to manually delete all rows for "${csvKey}" from price_history.csv in GitHub.`,async()=>{
+    cfg.buckets[bucketIdx].retailers.splice(retIdx,1);
+    await saveConfig('Delete retailer: '+rname);
+  });
+}
 
 // ── Pause ─────────────────────────────────────────────────────────────────────
 function openPause(){document.getElementById('pau-modal').classList.add('open');}
@@ -692,13 +704,17 @@ async function saveConfig(msg){
   showToast('Saving...');
   try{
     const sr=await fetch(`${API}/contents/config.json`,{headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'}});
-    const sha=(await sr.json()).sha;
-    const body={email:{sender_email:'',app_password:'',recipient_email:''},buckets:cfg.buckets};
+    if(!sr.ok){const e=await sr.json();throw new Error('Read failed: '+e.message);}
+    const srData=await sr.json();
+    const sha=srData.sha;
+    // Decode existing config to preserve email credentials — never overwrite them
+    const existing=JSON.parse(decodeURIComponent(escape(atob(srData.content.replace(/\n/g,'')))));
+    const body={email:existing.email||{sender_email:'',app_password:'',recipient_email:''},buckets:cfg.buckets};
     const content=btoa(unescape(encodeURIComponent(JSON.stringify(body,null,2))));
     const res=await fetch(`${API}/contents/config.json`,{method:'PUT',headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:msg,content,sha,branch:GHB})});
-    if(!res.ok){const e=await res.json();throw new Error(e.message);}
+    if(!res.ok){const e=await res.json();throw new Error('Write failed: '+e.message);}
     showToast('Saved ✓');setTimeout(()=>render(),400);
-  }catch(e){showToast('Error: '+e.message);}
+  }catch(e){showToast('Error: '+e.message);console.error('saveConfig error:',e);}
 }
 
 // ── Confirm ───────────────────────────────────────────────────────────────────
