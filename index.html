@@ -742,7 +742,7 @@ async function saveConfig(msg){
 // ── Confirm ───────────────────────────────────────────────────────────────────
 function showConf(t,m,cb){document.getElementById('conf-title').textContent=t;document.getElementById('conf-msg').textContent=m;confCb=cb;document.getElementById('conf-modal').classList.add('open');}
 function closeConf(){document.getElementById('conf-modal').classList.remove('open');confCb=null;}
-document.getElementById('conf-btn').onclick=async()=>{closeConf();if(confCb)await confCb();};
+document.getElementById('conf-btn').onclick=async()=>{const cb=confCb;closeConf();if(cb)await cb();};
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('on');setTimeout(()=>t.classList.remove('on'),2500);}
