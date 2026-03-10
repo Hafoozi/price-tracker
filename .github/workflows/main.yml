@@ -35,7 +35,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4
+        run: pip install requests beautifulsoup4 supabase
 
       - name: Run price tracker (normal)
         if: github.event.schedule != '30 11 * * 0' && github.event.inputs.mode != 'weekly'
@@ -43,6 +43,8 @@ jobs:
           SENDER_EMAIL:    ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD:    ${{ secrets.APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          SUPABASE_URL:    ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:    ${{ secrets.SUPABASE_KEY }}
         run: python tracker.py
 
       - name: Run price tracker (weekly summary)
@@ -51,6 +53,8 @@ jobs:
           SENDER_EMAIL:    ${{ secrets.SENDER_EMAIL }}
           APP_PASSWORD:    ${{ secrets.APP_PASSWORD }}
           RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
+          SUPABASE_URL:    ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY:    ${{ secrets.SUPABASE_KEY }}
         run: python tracker.py --weekly
 
       - name: Save price history back to repo

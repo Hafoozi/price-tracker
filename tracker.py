@@ -10,6 +10,13 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, urljoin
+try:
+    from supabase import create_client
+    _sb_url = os.environ.get("SUPABASE_URL", "")
+    _sb_key = os.environ.get("SUPABASE_KEY", "")
+    supabase = create_client(_sb_url, _sb_key) if _sb_url and _sb_key else None
+except Exception:
+    supabase = None
 
 CONFIG_FILE   = os.path.join(os.path.dirname(__file__), "config.json")
 PRICE_LOG     = os.path.join(os.path.dirname(__file__), "price_history.csv")
@@ -359,6 +366,18 @@ def log_price(label: str, retailer: str, url: str, price: float, image: str | No
             "image":     image or "",
             "oos":       "1" if oos else "",
         })
+    if supabase:
+        try:
+            supabase.table("price_history").insert({
+                "timestamp": datetime.now().isoformat(),
+                "name":      f"{label} - {retailer}",
+                "price":     price,
+                "url":       url,
+                "image":     image or "",
+                "oos":       oos,
+            }).execute()
+        except Exception as e:
+            print(f"  [SUPABASE] Insert failed: {e}")
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 def send_email(config: dict, subject: str, html: str):
