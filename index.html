@@ -452,13 +452,13 @@ function render(){
   Object.values(charts).forEach(c=>c&&c.destroy&&c.destroy());charts={};
   const mobile=window.innerWidth<=767;
   cfg.buckets.forEach((b,i)=>{
-    const open=cState[i]!==undefined?cState[i]:!mobile;
+    const open=cState[i]!==undefined?cState[i]:false;
     grid.appendChild(buildCard(b,i,open));
   });
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
   if(reorderMode)grid.classList.add('reorder-mode');
-  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:!mobile)drawChart(b,i,'all');});
+  cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:false)drawChart(b,i,'all');});
   updTogBtn();initDrag();closeAllMenus();
 }
 
