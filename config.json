@@ -72,6 +72,15 @@
           "url": "https://www.stihlusa.com/en/p/leaf-blowers-blowers-vacuum-shredders-br-600-gasoline-backpack-blower-1027126"
         }
       ]
+    },
+    {
+      "label": "Baratza Test",
+      "retailers": [
+        {
+          "name": "Baratza",
+          "url": "https://www.williams-sonoma.com/products/baratza-encore-coffee-grinder/"
+        }
+      ]
     }
   ]
 }
