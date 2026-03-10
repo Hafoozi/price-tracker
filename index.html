@@ -335,6 +335,19 @@
   </div>
 </div>
 
+<!-- Token -->
+<div class="overlay" id="tok-modal">
+  <div class="smmodal">
+    <h2>GitHub Personal Access Token</h2>
+    <p style="font-size:0.78rem;color:var(--muted);margin-top:6px;line-height:1.5">Enter a PAT with <strong>repo</strong> scope to save changes.</p>
+    <input id="tok-inp" type="password" placeholder="ghp_..." style="width:100%;margin-top:12px;padding:9px 11px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.85rem;font-family:var(--font);outline:none"/>
+    <div class="smfooter">
+      <button class="btn btn-sec" onclick="closeTokModal(null)">Cancel</button>
+      <button class="btn btn-pri" onclick="closeTokModal(document.getElementById('tok-inp').value.trim())">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- Pause -->
 <div class="overlay" id="pau-modal">
   <div class="pause-box">
@@ -365,8 +378,17 @@ let tok=localStorage.getItem('gh_token')||'';
 let rows=[],cfg=null,charts={},confCb=null;
 let cState={},reorderMode=false,renIdx=-1;
 let activeMenu=null,activeMenuIdx=-1;
+let tokResolve=null;
 
-function getToken(){if(!tok){tok=prompt('Enter GitHub Personal Access Token:');if(tok)localStorage.setItem('gh_token',tok);}return tok;}
+function closeTokModal(val){document.getElementById('tok-modal').classList.remove('open');if(tokResolve){tokResolve(val||null);tokResolve=null;}}
+document.getElementById('tok-inp').addEventListener('keydown',e=>{if(e.key==='Enter')closeTokModal(document.getElementById('tok-inp').value.trim());if(e.key==='Escape')closeTokModal(null);});
+async function getToken(){
+  if(!tok){
+    tok=await new Promise(res=>{tokResolve=res;document.getElementById('tok-inp').value='';document.getElementById('tok-modal').classList.add('open');setTimeout(()=>document.getElementById('tok-inp').focus(),60);});
+    if(tok)localStorage.setItem('gh_token',tok);
+  }
+  return tok;
+}
 
 // ── TIMESTAMP FIX: parse CSV timestamps as UTC explicitly ─────────────────────
 // CSV format: "2026-02-23 01:45:00" (GitHub Actions = UTC, no timezone marker)
@@ -692,7 +714,7 @@ function delRetailer(bucketIdx,retIdx){
 function openPause(){document.getElementById('pau-modal').classList.add('open');}
 function closePause(){document.getElementById('pau-modal').classList.remove('open');}
 async function toggleWF(enable){
-  const t=getToken();if(!t){showToast('Token required.');return;}
+  const t=await getToken();if(!t){showToast('Token required.');return;}
   showToast(enable?'Resuming...':'Pausing...');
   try{const r=await fetch(`${API}/actions/workflows/price_tracker.yml/${enable?'enable':'disable'}`,{method:'PUT',headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'}});showToast(r.status===204?(enable?'Resumed ✓':'Paused ✓'):'Error — check token');}
   catch(e){showToast('Error: '+e.message);}
@@ -700,7 +722,7 @@ async function toggleWF(enable){
 
 // ── Save config ───────────────────────────────────────────────────────────────
 async function saveConfig(msg){
-  const t=getToken();if(!t){alert('Token required.');return;}
+  const t=await getToken();if(!t){showToast('Token required.');return;}
   showToast('Saving...');
   try{
     const sr=await fetch(`${API}/contents/config.json`,{headers:{Authorization:`token ${t}`,Accept:'application/vnd.github.v3+json'}});
