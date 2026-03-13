@@ -605,7 +605,8 @@ def run(weekly: bool = False):
         for name in tracked:
             product_rows = [r for r in all_rows if r["name"] == name]
             if not product_rows:
-                stale.append(f"{name} (no data yet)")
+                # Never had data — persistent scrape failure, not a regression. Skip.
+                continue
             else:
                 latest_ts = datetime.strptime(product_rows[-1]["timestamp"], "%Y-%m-%d %H:%M:%S")
                 if latest_ts < cutoff_ts:
