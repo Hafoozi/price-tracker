@@ -513,7 +513,10 @@ function getRetData(bucket){
     const rr=rows.filter(x=>x.name===name);
     const last=rr.length?rr.reduce((a,b)=>a.ts>b.ts?a:b):null;
     const inLast=maxTs&&rr.some(x=>Math.abs(x.ts-maxTs)<7200000);
-    return{name:r.name,url:r.url,price:last?.price??null,img:last?.img??'',oos:last?.oos??false,failed:!last,error:rr.length>0&&maxTs&&!inLast};
+    return{name:r.name,url:r.url,price:last?.price??null,img:last?.img??'',oos:last?.oos??false,
+      pending:!last&&!maxTs,          // bucket never ran — newly added, not yet attempted
+      failed:!last&&!!maxTs,          // bucket ran but this retailer got nothing — unable to scrape
+      error:rr.length>0&&maxTs&&!inLast}; // had data before but missed last run
   });
 }
 
@@ -590,12 +593,13 @@ function buildCard(bucket,idx,isOpen){
   rets.forEach(r=>{
     const isBest=r.price!==null&&r.price===best&&!r.oos;
     const row=document.createElement('div');
-    row.className='rrow'+(isBest?' best-row':'')+(r.failed&&!r.error?' fail-row':'')+(r.error?' err-row':'');
+    row.className='rrow'+(isBest?' best-row':'')+(r.failed||r.pending?' fail-row':'')+(r.error?' err-row':'');
     row.innerHTML=`
       <div class="rinfo">
         <div class="rname"><a href="${r.url}" target="_blank">${r.name}</a></div>
         ${isBest?'<span class="tag tag-best">Best</span>':''}
-        ${r.failed&&!r.error?'<span class="tag tag-nd">Unable to Scrape</span>':''}
+        ${r.pending?'<span class="tag tag-nd">No Data</span>':''}
+        ${r.failed?'<span class="tag tag-nd">Unable to Scrape</span>':''}
         ${r.error?'<span class="tag tag-err">Failed</span>':''}
         ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
