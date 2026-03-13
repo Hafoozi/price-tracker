@@ -61,6 +61,15 @@
       ]
     },
     {
+      "label": "Xbox Series X",
+      "retailers": [
+        {
+          "name": "Microsoft",
+          "url": "https://www.xbox.com/en-US/consoles/xbox-series-x"
+        }
+      ]
+    },
+    {
       "label": "BR 600 Stihl",
       "retailers": [
         {
@@ -101,15 +110,6 @@
         {
           "name": "Test",
           "url": "https://www.1aauto.com/honda-accord-hr-v-front-ceramic-brake-pad-and-rotor-kit-trq-bka11716/i/1abfs02565/5857339/2018"
-        }
-      ]
-    },
-    {
-      "label": "Xbox Series X",
-      "retailers": [
-        {
-          "name": "Microsoft",
-          "url": "https://www.xbox.com/en-US/consoles/xbox-series-x"
         }
       ]
     }
