@@ -14,7 +14,7 @@
       --red:#f75c5c;--yellow:#f7c948;--orange:#f79c4f;
       --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--radius:12px;
     }
-    html,body{overflow-x:hidden;width:100%}
+    html,body{overflow-x:clip;width:100%}
     body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;font-size:16px}
 
     /* ── Header ── */
@@ -275,7 +275,7 @@
         <div class="mob-dd-wrap">
           <button class="btn btn-sec" onclick="toggleMobMenu(event)">☰</button>
           <div class="mob-dd hidden" id="mob-dd">
-            <div class="mitem" onclick="smartToggle();closeMobMenu()">Toggle All</div>
+            <div class="mitem" id="mob-tog" onclick="smartToggle();closeMobMenu()">Collapse All</div>
             <div class="mitem" onclick="enterReorder();closeMobMenu()">Reorder Cards</div>
             <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
             <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
@@ -422,6 +422,7 @@ function updateStatus(r){
 
 // ── Load data ─────────────────────────────────────────────────────────────────
 async function loadData(){
+  window.scrollTo(0,0);
   document.getElementById('loading').style.display='block';
   document.getElementById('err').style.display='none';
   document.getElementById('grid').style.display='none';
@@ -498,6 +499,7 @@ function smartToggle(){
 function updTogBtn(){
   const anyOpen=cfg.buckets.some((_,i)=>{const c=document.querySelector(`.pcard[data-idx="${i}"]`);return c&&c.querySelector('.card-body').classList.contains('open');});
   const btn=document.getElementById('tog-btn');if(btn)btn.textContent=anyOpen?'Collapse All':'Expand All';
+  const mob=document.getElementById('mob-tog');if(mob)mob.textContent=anyOpen?'Collapse All':'Expand All';
 }
 
 // ── Retailer data helpers ─────────────────────────────────────────────────────

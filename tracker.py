@@ -262,6 +262,33 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
         except Exception:
             continue
 
+    # ── Step 1b: Shopify product JSON fallback (for Shopify stores with no JSON-LD pricing) ──
+    if result["price"] is None or result["image"] is None:
+        shopify_m = re.match(r'(https?://[^/]+/products/[^/?#]+)', url)
+        if shopify_m:
+            try:
+                jr = requests.get(shopify_m.group(1) + '.json', headers=HEADERS, timeout=10)
+                if jr.status_code == 200:
+                    pdata = jr.json().get('product', {})
+                    variants = pdata.get('variants', [])
+                    target = None
+                    if variant_id:
+                        target = next((v for v in variants if str(v.get('id')) == variant_id), None)
+                    if target is None and variants:
+                        target = variants[0]
+                    if target:
+                        price = clean_price(str(target.get('price', '')))
+                        if price and price > 0:
+                            result['price'] = price
+                    if result['image'] is None:
+                        imgs = pdata.get('images', [])
+                        if imgs:
+                            cleaned = clean_image_url(imgs[0].get('src', ''), url)
+                            if cleaned:
+                                result['image'] = cleaned
+            except Exception:
+                pass
+
     # ── Step 2: HTML fallback — only if JSON-LD gave us nothing ──
     # Explicitly skip compare-at / was / original price elements (these are crossed-out prices)
     COMPARE_AT_PATTERN = re.compile(
@@ -311,6 +338,13 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
         img = og.get("content", "") if og else ""
         cleaned = clean_image_url(img, url)
         if cleaned: result["image"] = cleaned
+
+    # Last resort: look for <img alt="Part image"> (e.g. RockAuto)
+    if result["image"] is None:
+        part_img = soup.find("img", alt=re.compile(r"part\s+image", re.I))
+        if part_img:
+            cleaned = clean_image_url(part_img.get("src", ""), url)
+            if cleaned: result["image"] = cleaned
 
     # Check for out-of-stock signals
     result["oos"] = is_out_of_stock(soup, url)
