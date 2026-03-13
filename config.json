@@ -7,12 +7,7 @@
   "buckets": [
     {
       "label": "Xbox Series X",
-      "retailers": [
-        {
-          "name": "Microsoft",
-          "url": "https://www.xbox.com/en-US/consoles/xbox-series-x"
-        }
-      ]
+      "retailers": []
     },
     {
       "label": "Turin DF83 Gen 2 Grinder",
