@@ -6,23 +6,6 @@
   },
   "buckets": [
     {
-      "label": "Lelit Bianca Espresso Machine",
-      "retailers": [
-        {
-          "name": "CliveCoffee",
-          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
-        },
-        {
-          "name": "SurLaTable",
-          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
-        },
-        {
-          "name": "CoffeeMachineDepot",
-          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
-        }
-      ]
-    },
-    {
       "label": "Xbox Series X",
       "retailers": [
         {
@@ -49,6 +32,23 @@
         {
           "name": "JSA Coffee",
           "url": "https://jsacoffee.com/products/turin-df83-v3-single-dose-grinder?variant=50769216143652"
+        }
+      ]
+    },
+    {
+      "label": "Lelit Bianca Espresso Machine",
+      "retailers": [
+        {
+          "name": "CliveCoffee",
+          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
+        },
+        {
+          "name": "SurLaTable",
+          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
+        },
+        {
+          "name": "CoffeeMachineDepot",
+          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
         }
       ]
     },
