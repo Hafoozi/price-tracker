@@ -70,11 +70,11 @@
     .card-hdr{padding:15px 18px;display:flex;align-items:center;gap:12px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
     .card-hdr:active{background:rgba(255,255,255,.02);border-radius:var(--radius)}
 
-    /* Drag handle */
-    .dhandle{display:none;flex-direction:column;gap:3px;padding:5px 4px;cursor:grab;flex-shrink:0;color:var(--muted);border-radius:4px;touch-action:none}
-    .dhandle:active{color:var(--accent)}
+    /* Drag handle — always visible */
+    .dhandle{display:flex;flex-direction:column;gap:3px;padding:5px 4px;cursor:grab;flex-shrink:0;color:var(--muted);border-radius:4px;touch-action:none}
+    .dhandle:hover{color:var(--accent)}
+    .dhandle:active{cursor:grabbing;color:var(--accent)}
     .dhandle span{display:block;width:14px;height:2px;background:currentColor;border-radius:2px}
-    .reorder-mode .dhandle{display:flex}
 
     /* Image */
     .pimg,.pimg-ph{width:56px;height:56px;border-radius:9px;flex-shrink:0;border:1px solid var(--border)}
@@ -141,9 +141,10 @@
     .addr-form input{flex:1;min-width:110px;padding:7px 10px;border-radius:7px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.78rem;font-family:var(--font);outline:none}
     .addr-form input:focus{border-color:var(--accent)}
     .btn-addr{font-size:0.7rem;color:var(--muted);background:none;border:1px dashed var(--border);border-radius:7px;padding:6px 10px;cursor:pointer}
-    .btn-del-ret{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.75rem;padding:2px 5px;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .15s}
-    .rrow:hover .btn-del-ret{opacity:1}
+    .btn-del-ret,.btn-edit-ret{background:none;border:none;color:var(--muted);cursor:pointer;font-size:0.75rem;padding:2px 5px;border-radius:4px;flex-shrink:0;opacity:0;transition:opacity .15s}
+    .rrow:hover .btn-del-ret,.rrow:hover .btn-edit-ret{opacity:1}
     .btn-del-ret:hover{color:#e74c3c;background:rgba(231,76,60,.1)}
+    .btn-edit-ret:hover{color:var(--accent);background:rgba(79,142,247,.1)}
     .btn-addr:active{border-color:var(--accent);color:var(--accent)}
 
     /* Graph */
@@ -276,7 +277,6 @@
           <button class="btn btn-sec" onclick="toggleMobMenu(event)">☰</button>
           <div class="mob-dd hidden" id="mob-dd">
             <div class="mitem" id="mob-tog" onclick="smartToggle();closeMobMenu()">Collapse All</div>
-            <div class="mitem" onclick="enterReorder();closeMobMenu()">Reorder Cards</div>
             <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
             <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
           </div>
@@ -286,10 +286,6 @@
   </div>
 </header>
 
-<div class="reorder-banner" id="rbanner">
-  Reorder mode — drag to rearrange &nbsp;·&nbsp;
-  <a href="#" onclick="exitReorder();return false" style="color:var(--accent)">Done</a>
-</div>
 
 <main>
   <div id="loading">Fetching price data...</div>
@@ -319,6 +315,19 @@
     <div class="smfooter">
       <button class="btn btn-sec" onclick="closeRen()">Cancel</button>
       <button class="btn btn-pri" onclick="confirmRen()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Retailer -->
+<div class="overlay" id="editret-modal">
+  <div class="modal">
+    <h2>Edit Retailer</h2>
+    <label>Retailer Name</label><input id="editret-name" type="text" placeholder="e.g. Amazon"/>
+    <label>Product URL</label><input id="editret-url" type="url" placeholder="https://..."/>
+    <div class="mfooter">
+      <button class="btn btn-sec" onclick="closeEditRet()">Cancel</button>
+      <button class="btn btn-pri" onclick="confirmEditRet()">Save</button>
     </div>
   </div>
 </div>
@@ -376,7 +385,7 @@ const API=`https://api.github.com/repos/${GHU}/${GHR}`;
 
 let tok=localStorage.getItem('gh_token')||'';
 let rows=[],cfg=null,charts={},confCb=null;
-let cState={},reorderMode=false,renIdx=-1;
+let cState={},renIdx=-1;
 let activeMenu=null,activeMenuIdx=-1;
 let tokResolve=null;
 
@@ -482,7 +491,6 @@ function render(){
   });
   document.getElementById('loading').style.display='none';
   grid.style.display='grid';
-  if(reorderMode)grid.classList.add('reorder-mode');
   cfg.buckets.forEach((b,i)=>{if(cState[i]!==undefined?cState[i]:false)drawChart(b,i,'all');});
   updTogBtn();initDrag();closeAllMenus();
 }
@@ -604,6 +612,7 @@ function buildCard(bucket,idx,isOpen){
         ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
       <div class="rprice ${r.oos?'oos-price':isBest?'best':''} ${r.price===null?'na':''}">${r.price!==null?'$'+r.price.toFixed(2):'unavailable'}</div>
+      <button class="btn-edit-ret" title="Edit retailer" onclick="event.stopPropagation();editRet(${idx},${rets.indexOf(r)})">✎</button>
       <button class="btn-del-ret" title="Remove retailer" onclick="event.stopPropagation();delRetailer(${idx},${rets.indexOf(r)})">✕</button>`;
     retEl.appendChild(row);
   });
@@ -660,13 +669,14 @@ function toggleCardMenu(e,idx){
   menu.className='cmenu';menu.id='active-cmenu';
   menu.innerHTML=`
     <div class="mitem" onclick="openRen(${idx});closeAllMenus()">Rename Product</div>
-    <div class="mitem" onclick="enterReorder();closeAllMenus()">Reorder Cards</div>
     <div class="mdiv"></div>
     <div class="mitem danger" onclick="delBucket(${idx});closeAllMenus()">Delete Product</div>`;
   document.body.appendChild(menu);activeMenu=menu;
-  const mW=170;
+  const mW=170,mH=90;
   const left=Math.max(8,Math.min(rect.right-mW,window.innerWidth-mW-8));
-  menu.style.top=(rect.bottom+5)+'px';menu.style.left=left+'px';
+  // Flip above button if not enough space below
+  const top=rect.bottom+5+mH>window.innerHeight ? rect.top-mH-5 : rect.bottom+5;
+  menu.style.top=top+'px';menu.style.left=left+'px';
 }
 function closeAllMenus(){
   document.getElementById('active-cmenu')?.remove();
@@ -679,15 +689,19 @@ document.addEventListener('click',()=>closeAllMenus());
 function toggleMobMenu(e){e.stopPropagation();document.getElementById('mob-dd').classList.toggle('hidden');}
 function closeMobMenu(){document.getElementById('mob-dd')?.classList.add('hidden');}
 
-// ── Reorder ───────────────────────────────────────────────────────────────────
-function enterReorder(){reorderMode=true;document.getElementById('rbanner').classList.add('active');document.querySelectorAll('.pcard').forEach(c=>c.draggable=true);document.getElementById('grid').classList.add('reorder-mode');}
-function exitReorder(){reorderMode=false;document.getElementById('rbanner').classList.remove('active');document.querySelectorAll('.pcard').forEach(c=>c.draggable=false);document.getElementById('grid').classList.remove('reorder-mode');}
-
 // ── Rename ────────────────────────────────────────────────────────────────────
 function openRen(idx){renIdx=idx;document.getElementById('ren-inp').value=cfg.buckets[idx].label;document.getElementById('ren-modal').classList.add('open');setTimeout(()=>document.getElementById('ren-inp').select(),60);}
 function closeRen(){document.getElementById('ren-modal').classList.remove('open');renIdx=-1;}
 async function confirmRen(){const n=document.getElementById('ren-inp').value.trim();if(!n||renIdx<0){closeRen();return;}cfg.buckets[renIdx].label=n;closeRen();await saveConfig('Rename: '+n);}
 document.getElementById('ren-inp').addEventListener('keydown',e=>{if(e.key==='Enter')confirmRen();if(e.key==='Escape')closeRen();});
+
+// ── Edit Retailer ─────────────────────────────────────────────────────────────
+let editRetBI=-1,editRetRI=-1;
+function editRet(bi,ri){editRetBI=bi;editRetRI=ri;const r=cfg.buckets[bi].retailers[ri];document.getElementById('editret-name').value=r.name;document.getElementById('editret-url').value=r.url;document.getElementById('editret-modal').classList.add('open');setTimeout(()=>document.getElementById('editret-name').select(),60);}
+function closeEditRet(){document.getElementById('editret-modal').classList.remove('open');editRetBI=-1;editRetRI=-1;}
+async function confirmEditRet(){const n=document.getElementById('editret-name').value.trim(),u=document.getElementById('editret-url').value.trim();if(!n||!u){alert('Enter retailer name and URL.');return;}cfg.buckets[editRetBI].retailers[editRetRI]={name:n,url:u};closeEditRet();await saveConfig('Edit retailer: '+n);}
+document.getElementById('editret-name').addEventListener('keydown',e=>{if(e.key==='Escape')closeEditRet();});
+document.getElementById('editret-url').addEventListener('keydown',e=>{if(e.key==='Enter')confirmEditRet();if(e.key==='Escape')closeEditRet();});
 
 // ── Add / Delete ──────────────────────────────────────────────────────────────
 function openAdd(){document.getElementById('add-modal').classList.add('open');setTimeout(()=>document.getElementById('nb-lbl').focus(),50);}
@@ -756,15 +770,21 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 // ── Drag ─────────────────────────────────────────────────────────────────────
 function initDrag(){
   const grid=document.getElementById('grid');let src=null;
-  grid.querySelectorAll('.pcard').forEach(card=>{
-    card.addEventListener('dragstart',e=>{if(!reorderMode)return;src=card;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
-    card.addEventListener('dragend',()=>{card.classList.remove('dragging');grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));if(!reorderMode)return;reorderSave(grid);});
-    card.addEventListener('dragover',e=>{if(!reorderMode)return;e.preventDefault();if(card!==src){grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');}});
-    card.addEventListener('drop',e=>{if(!reorderMode)return;e.preventDefault();if(card!==src){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(src)<cs.indexOf(card)?card.after(src):card.before(src);}card.classList.remove('drag-over');});
+  // Desktop: enable draggable only while mousedown on handle — prevents accidental drags
+  grid.querySelectorAll('.dhandle').forEach(h=>{
+    h.addEventListener('mousedown',()=>{h.closest('.pcard').draggable=true;});
+    h.addEventListener('mouseleave',()=>{if(!src)h.closest('.pcard').draggable=false;});
   });
+  grid.querySelectorAll('.pcard').forEach(card=>{
+    card.addEventListener('dragstart',e=>{src=card;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
+    card.addEventListener('dragend',()=>{card.draggable=false;card.classList.remove('dragging');grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));src=null;reorderSave(grid);});
+    card.addEventListener('dragover',e=>{e.preventDefault();if(card!==src){grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');}});
+    card.addEventListener('drop',e=>{e.preventDefault();if(card!==src){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(src)<cs.indexOf(card)?card.after(src):card.before(src);}card.classList.remove('drag-over');});
+  });
+  // Touch: handle-initiated drag for mobile
   let td=null,tc=null,tox=0,toy=0;
   grid.querySelectorAll('.dhandle').forEach(h=>{
-    h.addEventListener('touchstart',e=>{if(!reorderMode)return;td=h.closest('.pcard');const r=td.getBoundingClientRect();tox=e.touches[0].clientX-r.left;toy=e.touches[0].clientY-r.top;tc=td.cloneNode(true);tc.style.cssText=`position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;left:${r.left}px;top:${r.top}px`;document.body.appendChild(tc);td.style.opacity='.3';e.preventDefault();},{passive:false});
+    h.addEventListener('touchstart',e=>{td=h.closest('.pcard');const r=td.getBoundingClientRect();tox=e.touches[0].clientX-r.left;toy=e.touches[0].clientY-r.top;tc=td.cloneNode(true);tc.style.cssText=`position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;left:${r.left}px;top:${r.top}px`;document.body.appendChild(tc);td.style.opacity='.3';e.preventDefault();},{passive:false});
     h.addEventListener('touchmove',e=>{if(!td||!tc)return;const t=e.touches[0];tc.style.left=(t.clientX-tox)+'px';tc.style.top=(t.clientY-toy)+'px';const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));if(target)target.classList.add('drag-over');e.preventDefault();},{passive:false});
     h.addEventListener('touchend',e=>{if(!td)return;const t=e.changedTouches[0];const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);if(target){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(td)<cs.indexOf(target)?target.after(td):target.before(td);}td.style.opacity='';tc.remove();tc=null;td=null;grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));reorderSave(grid);});
   });
