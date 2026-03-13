@@ -79,6 +79,10 @@
         {
           "name": "HawkPartsDirect",
           "url": "https://www.hawkpadsdirect.com/products/hawk-performance-hb950b-594-brake-pads?variant=46223302557888"
+        },
+        {
+          "name": "BuyBrakes",
+          "url": "https://www.buybrakes.com/hawk-performance-hb950b.594-disc-brake-pad-set?srsltid=AfmBOoouJbd8zgp3FunbVAU6G_LEUr-TtJa7EBkLT77dwCdS88tu-hbS"
         }
       ]
     },
@@ -88,6 +92,15 @@
         {
           "name": "RockAuto",
           "url": "https://www.rockauto.com/en/parts/raybestos,982124FZN,rotor,1896"
+        }
+      ]
+    },
+    {
+      "label": "Trial TEst",
+      "retailers": [
+        {
+          "name": "Test",
+          "url": "https://www.1aauto.com/honda-accord-hr-v-front-ceramic-brake-pad-and-rotor-kit-trq-bka11716/i/1abfs02565/5857339/2018"
         }
       ]
     }
