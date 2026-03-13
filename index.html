@@ -61,9 +61,12 @@
     .grid{display:grid;gap:12px}
 
     /* Card */
-    .pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
-    .pcard.drag-over{border-color:var(--accent);border-style:dashed}
+    .pcard{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);animation:fadeUp .3s ease both;transition:border-color .15s}
     .pcard.dragging{opacity:.4}
+    /* Drop insertion line — above or below */
+    .pcard.drop-above::before,.pcard.drop-below::after{content:'';position:absolute;left:0;right:0;height:3px;background:var(--accent);border-radius:2px;z-index:10;pointer-events:none}
+    .pcard.drop-above::before{top:-2px}
+    .pcard.drop-below::after{bottom:-2px}
     @keyframes fadeUp{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
 
     /* Card header */
@@ -775,18 +778,20 @@ function initDrag(){
     h.addEventListener('mousedown',()=>{h.closest('.pcard').draggable=true;});
     h.addEventListener('mouseleave',()=>{if(!src)h.closest('.pcard').draggable=false;});
   });
+  const clearDropLines=()=>grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drop-above','drop-below'));
+  const isAbove=(card,clientY)=>clientY<card.getBoundingClientRect().top+card.offsetHeight/2;
   grid.querySelectorAll('.pcard').forEach(card=>{
     card.addEventListener('dragstart',e=>{src=card;setTimeout(()=>card.classList.add('dragging'),0);e.dataTransfer.effectAllowed='move';});
-    card.addEventListener('dragend',()=>{card.draggable=false;card.classList.remove('dragging');grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));src=null;reorderSave(grid);});
-    card.addEventListener('dragover',e=>{e.preventDefault();if(card!==src){grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));card.classList.add('drag-over');}});
-    card.addEventListener('drop',e=>{e.preventDefault();if(card!==src){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(src)<cs.indexOf(card)?card.after(src):card.before(src);}card.classList.remove('drag-over');});
+    card.addEventListener('dragend',()=>{card.draggable=false;card.classList.remove('dragging');clearDropLines();src=null;reorderSave(grid);});
+    card.addEventListener('dragover',e=>{e.preventDefault();if(card===src)return;clearDropLines();card.classList.add(isAbove(card,e.clientY)?'drop-above':'drop-below');});
+    card.addEventListener('drop',e=>{e.preventDefault();if(card!==src){isAbove(card,e.clientY)?card.before(src):card.after(src);}clearDropLines();});
   });
   // Touch: handle-initiated drag for mobile
   let td=null,tc=null,tox=0,toy=0;
   grid.querySelectorAll('.dhandle').forEach(h=>{
     h.addEventListener('touchstart',e=>{td=h.closest('.pcard');const r=td.getBoundingClientRect();tox=e.touches[0].clientX-r.left;toy=e.touches[0].clientY-r.top;tc=td.cloneNode(true);tc.style.cssText=`position:fixed;width:${r.width}px;opacity:.8;pointer-events:none;z-index:999;border-radius:12px;left:${r.left}px;top:${r.top}px`;document.body.appendChild(tc);td.style.opacity='.3';e.preventDefault();},{passive:false});
-    h.addEventListener('touchmove',e=>{if(!td||!tc)return;const t=e.touches[0];tc.style.left=(t.clientX-tox)+'px';tc.style.top=(t.clientY-toy)+'px';const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));if(target)target.classList.add('drag-over');e.preventDefault();},{passive:false});
-    h.addEventListener('touchend',e=>{if(!td)return;const t=e.changedTouches[0];const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);if(target){const cs=[...grid.querySelectorAll('.pcard')];cs.indexOf(td)<cs.indexOf(target)?target.after(td):target.before(td);}td.style.opacity='';tc.remove();tc=null;td=null;grid.querySelectorAll('.pcard').forEach(c=>c.classList.remove('drag-over'));reorderSave(grid);});
+    h.addEventListener('touchmove',e=>{if(!td||!tc)return;const t=e.touches[0];tc.style.left=(t.clientX-tox)+'px';tc.style.top=(t.clientY-toy)+'px';const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);clearDropLines();if(target)target.classList.add(isAbove(target,t.clientY)?'drop-above':'drop-below');e.preventDefault();},{passive:false});
+    h.addEventListener('touchend',e=>{if(!td)return;const t=e.changedTouches[0];const target=document.elementsFromPoint(t.clientX,t.clientY).find(el=>el.classList.contains('pcard')&&el!==td);if(target){isAbove(target,t.clientY)?target.before(td):target.after(td);}td.style.opacity='';tc.remove();tc=null;td=null;clearDropLines();reorderSave(grid);});
   });
 }
 function reorderSave(grid){const order=[...grid.querySelectorAll('.pcard')].map(c=>parseInt(c.dataset.idx));cfg.buckets=order.map(i=>cfg.buckets[i]);grid.querySelectorAll('.pcard').forEach((c,i)=>c.dataset.idx=i);saveConfig('Reorder products');}
