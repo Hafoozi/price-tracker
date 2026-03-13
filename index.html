@@ -452,7 +452,9 @@ async function loadData(){
     // Error detection
     if(cur.length){
       const maxTs=Math.max(...cur.map(r=>r.ts));
-      const bad=[...names].filter(n=>!cur.some(r=>r.name===n&&Math.abs(r.ts-maxTs)<7200000));
+      // Only flag retailers that HAD data before but missed the last run (truly broken)
+      // Retailers with zero history are "unable to scrape" — not counted as errors
+      const bad=[...names].filter(n=>cur.some(r=>r.name===n)&&!cur.some(r=>r.name===n&&Math.abs(r.ts-maxTs)<7200000));
       if(bad.length){
         const el=document.getElementById('hdr-err');
         el.style.display='inline';
@@ -540,9 +542,7 @@ function buildCard(bucket,idx,isOpen){
 
   // Warning icon only for actual data errors — NOT sold out (that's shown inline)
   const warnMsgs=[];
-  const failedCount=rets.filter(r=>r.failed&&!r.error).length;
   const errCount=rets.filter(r=>r.error).length;
-  if(failedCount)warnMsgs.push(`${failedCount} retailer${failedCount>1?'s':''} have no data`);
   if(errCount)warnMsgs.push(`${errCount} retailer${errCount>1?'s':''} failed last run`);
 
   // Price vs avg
@@ -595,7 +595,7 @@ function buildCard(bucket,idx,isOpen){
       <div class="rinfo">
         <div class="rname"><a href="${r.url}" target="_blank">${r.name}</a></div>
         ${isBest?'<span class="tag tag-best">Best</span>':''}
-        ${r.failed&&!r.error?'<span class="tag tag-nd">No Data</span>':''}
+        ${r.failed&&!r.error?'<span class="tag tag-nd">Unable to Scrape</span>':''}
         ${r.error?'<span class="tag tag-err">Failed</span>':''}
         ${r.oos?'<span class="tag tag-oos">Sold Out</span>':''}
       </div>
