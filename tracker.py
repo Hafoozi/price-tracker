@@ -542,8 +542,22 @@ def run(weekly: bool = False):
                 if new_price is None:
                     continue
 
-                # Always log the price (even OOS — dashboard shows it with OOS tag)
+                # ── Sanity checks — skip likely bad scrapes ──
+                # 1. Floor: anything under $1 is almost certainly a wrong element
+                if new_price < 1.0:
+                    print(f"    [SKIP] Price ${new_price:.2f} below floor ($1.00) — likely bad scrape")
+                    continue
+
+                # 2. Drop guard: >60% drop vs last known price is almost certainly wrong
+                #    (e.g. scraper grabbed a $1 membership instead of a $500 device)
                 old_price = read_last_price(label, rname)
+                if old_price and new_price < old_price * 0.40:
+                    drop_pct = (1 - new_price / old_price) * 100
+                    print(f"    [SKIP] Price ${new_price:.2f} is {drop_pct:.0f}% below last known ${old_price:.2f} — likely bad scrape")
+                    continue
+
+                # Always log the price (even OOS — dashboard shows it with OOS tag)
+                # Note: old_price already fetched above for the drop guard
                 log_price(label, rname, url, new_price, image, oos)
 
                 if oos:
