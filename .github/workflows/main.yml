@@ -57,11 +57,11 @@ jobs:
           SUPABASE_KEY:    ${{ secrets.SUPABASE_KEY }}
         run: python tracker.py --weekly
 
-      - name: Save price history back to repo
+      - name: Save config changes back to repo
         run: |
           git config user.name  "Price Tracker Bot"
           git config user.email "actions@github.com"
-          git add price_history.csv
-          git diff --staged --quiet || git commit -m "Update price history [$(date +'%Y-%m-%d %H:%M')]"
+          git add config.json
+          git diff --staged --quiet || git commit -m "Update config [$(date +'%Y-%m-%d %H:%M')]"
           git pull --rebase origin main
           git push
