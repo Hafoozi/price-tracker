@@ -106,12 +106,7 @@
     },
     {
       "label": "Xbox Series X",
-      "retailers": [
-        {
-          "name": "Microsoft",
-          "url": "https://www.xbox.com/en-US/configure/8WJ714N3RBTL"
-        }
-      ]
+      "retailers": []
     }
   ]
 }
