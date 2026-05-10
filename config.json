@@ -6,6 +6,31 @@
   },
   "buckets": [
     {
+      "label": "Cannon MF662Cdw",
+      "retailers": [
+        {
+          "name": "Staples",
+          "url": "https://www.staples.com/canon-imageclass-mf662cdw-wireless-color-all-in-one-laser-printer-best-for-home-office-6928c016/product_24654725"
+        },
+        {
+          "name": "Best Buy",
+          "url": "https://www.bestbuy.com/product/canon-imageclass-mf662cdw-wireless-duplex-all-in-one-color-laser-printer-white/J7C86SH9GS"
+        },
+        {
+          "name": "Best Buy 2",
+          "url": "https://www.bestbuy.com/product/canon-imageclass-mf662cdw-wireless-duplex-all-in-one-color-laser-printer-white/J7C86SH9GS"
+        },
+        {
+          "name": "Dell",
+          "url": "https://www.dell.com/en-us/shop/canon-imageclass-mf662cdw-wired-wireless-laser-multifunction-printer-color/apd/ad442562/printers-ink-toner?gacd=9684992-1418-5761040-439839359-0&dgc=ST&SA360CID=23805252200&gclsrc=aw.ds&gad_source=1&gad_campaignid=23805252200&gbraid=0AAAAADllXQfA3N-XE0KdwXN8cehItqYbH&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeSfT84b-_nplLdlTGfuJwbaZ1lwLGxq8MaphROI2WSdYrEmPC_29V38aAvfYEALw_wcB"
+        },
+        {
+          "name": "Canon",
+          "url": "https://www.usa.canon.com/shop/p/color-imageclass-mf662cdw-multifunction-wireless-laser-printer?gclsrc=aw.ds&gad_source=1&gad_campaignid=16687717827&gbraid=0AAAAADxAOrwWDVqd6lgRzHVngCOxymMBr&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeScB8ug5wEAWvJYGrScyV-_KnS2PMXOvyhIvJP1yHc9WC-n-rQaPLkEaAuC_EALw_wcB"
+        }
+      ]
+    },
+    {
       "label": "Brake Free Tail Light",
       "retailers": [
         {
@@ -57,31 +82,6 @@
         {
           "name": "CoffeeMachineDepot",
           "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
-        }
-      ]
-    },
-    {
-      "label": "Cannon MF662Cdw",
-      "retailers": [
-        {
-          "name": "Staples",
-          "url": "https://www.staples.com/canon-imageclass-mf662cdw-wireless-color-all-in-one-laser-printer-best-for-home-office-6928c016/product_24654725"
-        },
-        {
-          "name": "Best Buy",
-          "url": "https://www.bestbuy.com/product/canon-imageclass-mf662cdw-wireless-duplex-all-in-one-color-laser-printer-white/J7C86SH9GS"
-        },
-        {
-          "name": "Best Buy 2",
-          "url": "https://www.bestbuy.com/product/canon-imageclass-mf662cdw-wireless-duplex-all-in-one-color-laser-printer-white/J7C86SH9GS"
-        },
-        {
-          "name": "Dell",
-          "url": "https://www.dell.com/en-us/shop/canon-imageclass-mf662cdw-wired-wireless-laser-multifunction-printer-color/apd/ad442562/printers-ink-toner?gacd=9684992-1418-5761040-439839359-0&dgc=ST&SA360CID=23805252200&gclsrc=aw.ds&gad_source=1&gad_campaignid=23805252200&gbraid=0AAAAADllXQfA3N-XE0KdwXN8cehItqYbH&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeSfT84b-_nplLdlTGfuJwbaZ1lwLGxq8MaphROI2WSdYrEmPC_29V38aAvfYEALw_wcB"
-        },
-        {
-          "name": "Canon",
-          "url": "https://www.usa.canon.com/shop/p/color-imageclass-mf662cdw-multifunction-wireless-laser-printer?gclsrc=aw.ds&gad_source=1&gad_campaignid=16687717827&gbraid=0AAAAADxAOrwWDVqd6lgRzHVngCOxymMBr&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeScB8ug5wEAWvJYGrScyV-_KnS2PMXOvyhIvJP1yHc9WC-n-rQaPLkEaAuC_EALw_wcB"
         }
       ]
     }
