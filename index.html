@@ -408,7 +408,12 @@
       </div>
     </div>
     <div id="notif-rows"></div>
-    <div class="pfooter"><button class="btn btn-sec" onclick="closeNotif()">Close</button></div>
+    <div class="pfooter" style="display:flex;justify-content:space-between;align-items:center">
+      <button class="btn btn-sec" onclick="closeNotif()">Close</button>
+      <button class="btn btn-sec" style="font-size:0.66rem;padding:4px 10px" onclick="resetSbCreds()">Change credentials</button>
+    </div>
+  </div>
+</div>
   </div>
 </div>
 
@@ -1005,6 +1010,15 @@ function openNotif() {
   }
 }
 function closeNotif() { document.getElementById('notif-modal').classList.remove('open'); }
+function resetSbCreds() {
+  localStorage.removeItem('sb_url');
+  localStorage.removeItem('sb_anon_key');
+  sbClient = null;
+  document.getElementById('sb-url-inp').value = '';
+  document.getElementById('sb-key-inp').value = '';
+  document.getElementById('notif-setup').style.display = 'block';
+  document.getElementById('notif-rows').innerHTML = '';
+}
 
 async function loadNotifSettings() {
   const container = document.getElementById('notif-rows');

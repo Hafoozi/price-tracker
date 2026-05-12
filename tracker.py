@@ -18,6 +18,12 @@ try:
 except Exception:
     supabase = None
 
+try:
+    from playwright.sync_api import sync_playwright
+    _playwright_available = True
+except ImportError:
+    _playwright_available = False
+
 CONFIG_FILE   = os.path.join(os.path.dirname(__file__), "config.json")
 PRICE_LOG     = os.path.join(os.path.dirname(__file__), "price_history.csv")
 ALERTED_FILE  = os.path.join(os.path.dirname(__file__), "last_alerted.json")
@@ -221,32 +227,70 @@ HEADERS_MOBILE = {
     "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
 }
 
+# Domains that require a real browser to render prices
+BROWSER_DOMAINS = {"staples.com", "bestbuy.com", "usa.canon.com"}
+
+def needs_browser(url: str) -> bool:
+    netloc = urlparse(url).netloc.lower()
+    return any(d in netloc for d in BROWSER_DOMAINS)
+
+def fetch_with_browser(url: str, name: str) -> str | None:
+    if not _playwright_available:
+        print(f"  [WARN] {name}: Playwright not available, falling back to requests")
+        return None
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
+            context = browser.new_context(
+                user_agent=HEADERS["User-Agent"],
+                extra_http_headers={"Accept-Language": "en-US,en;q=0.9"},
+            )
+            page = context.new_page()
+            page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            try:
+                page.wait_for_load_state("networkidle", timeout=8000)
+            except Exception:
+                pass
+            content = page.content()
+            browser.close()
+            return content
+    except Exception as e:
+        print(f"  [WARN] {name}: browser fetch failed: {e}")
+        return None
+
 def scrape_product(url: str, label: str, retailer: str) -> dict:
     result = {"price": None, "image": None, "oos": False}
     name   = f"{label} - {retailer}"
 
-    # Try desktop UA first, fall back to mobile UA if blocked (403/429/503)
-    response = None
-    for hdrs in [HEADERS, HEADERS_MOBILE]:
-        try:
-            r = requests.get(url, headers=hdrs, timeout=15)
-            if r.status_code == 200:
-                response = r
-                break
-            elif r.status_code in (403, 429, 503):
-                print(f"  [WARN] {name}: HTTP {r.status_code}, retrying with alternate UA...")
-                time.sleep(3)
-            else:
-                r.raise_for_status()
-        except requests.RequestException as e:
-            print(f"  [ERROR] {name}: {e}")
+    # ── Fetch HTML — browser for JS-heavy retailers, requests otherwise ───────
+    html_text = None
+    if needs_browser(url):
+        print(f"  [BROWSER] {name}: rendering with Playwright...")
+        html_text = fetch_with_browser(url, name)
+
+    if html_text is None:
+        # Try desktop UA first, fall back to mobile UA if blocked (403/429/503)
+        response = None
+        for hdrs in [HEADERS, HEADERS_MOBILE]:
+            try:
+                r = requests.get(url, headers=hdrs, timeout=15)
+                if r.status_code == 200:
+                    response = r
+                    break
+                elif r.status_code in (403, 429, 503):
+                    print(f"  [WARN] {name}: HTTP {r.status_code}, retrying with alternate UA...")
+                    time.sleep(3)
+                else:
+                    r.raise_for_status()
+            except requests.RequestException as e:
+                print(f"  [ERROR] {name}: {e}")
+                return result
+        if response is None:
+            print(f"  [ERROR] {name}: blocked on all attempts (403/429/503)")
             return result
+        html_text = response.text
 
-    if response is None:
-        print(f"  [ERROR] {name}: blocked on all attempts (403/429/503)")
-        return result
-
-    soup = BeautifulSoup(response.text, "html.parser")
+    soup = BeautifulSoup(html_text, "html.parser")
 
     # ── Step 1: Try JSON-LD structured data first (most reliable, reflects actual price) ──
     # We do this BEFORE HTML scraping because HTML often has compare-at (crossed-out)
