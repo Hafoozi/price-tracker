@@ -37,7 +37,10 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install requests beautifulsoup4 supabase
+        run: pip install requests beautifulsoup4 supabase playwright
+
+      - name: Install Playwright browser
+        run: playwright install chromium --with-deps
 
       - name: Run price tracker (normal)
         if: github.event.schedule != '30 11 * * 0' && github.event.inputs.mode != 'weekly'
