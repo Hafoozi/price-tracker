@@ -228,7 +228,7 @@ HEADERS_MOBILE = {
 }
 
 # Domains that require a real browser to render prices
-BROWSER_DOMAINS = {"staples.com", "bestbuy.com", "usa.canon.com"}
+BROWSER_DOMAINS = {"usa.canon.com", "walmart.com"}
 
 def needs_browser(url: str) -> bool:
     netloc = urlparse(url).netloc.lower()
@@ -251,6 +251,13 @@ def fetch_with_browser(url: str, name: str) -> str | None:
                 page.wait_for_load_state("networkidle", timeout=8000)
             except Exception:
                 pass
+            # Wait for price element to appear (JS-rendered prices load after networkidle)
+            for sel in [".price .value", "[itemprop='price']", ".price-characteristic", ".price-block__final-price"]:
+                try:
+                    page.wait_for_selector(sel, timeout=5000)
+                    break
+                except Exception:
+                    pass
             content = page.content()
             browser.close()
             return content
@@ -403,6 +410,22 @@ def scrape_product(url: str, label: str, retailer: str) -> dict:
                 if skip:
                     continue
                 price = clean_price(el.get_text())
+                if price and price > 0:
+                    result["price"] = price
+                    break
+
+    # SFCC pattern: <span class="value" content="429.99"> or <span itemprop="price" content="429.99">
+    if result["price"] is None:
+        for el in soup.find_all(attrs={"itemprop": "price"}):
+            price = clean_price(str(el.get("content", "") or el.get_text()))
+            if price and price > 0:
+                result["price"] = price
+                break
+    if result["price"] is None:
+        for el in soup.find_all(attrs={"content": True}):
+            cls = " ".join(el.get("class", []))
+            if re.search(r"\bvalue\b", cls, re.I):
+                price = clean_price(str(el.get("content", "")))
                 if price and price > 0:
                     result["price"] = price
                     break

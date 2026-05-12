@@ -9,28 +9,24 @@
       "label": "Cannon MF662Cdw",
       "retailers": [
         {
-          "name": "Staples",
-          "url": "https://www.staples.com/canon-imageclass-mf662cdw-wireless-color-all-in-one-laser-printer-best-for-home-office-6928c016/product_24654725"
-        },
-        {
-          "name": "Best Buy",
-          "url": "https://www.bestbuy.com/product/canon-imageclass-mf662cdw-wireless-duplex-all-in-one-color-laser-printer-white/J7C86SH9GS"
-        },
-        {
           "name": "Dell",
-          "url": "https://www.dell.com/en-us/shop/canon-imageclass-mf662cdw-wired-wireless-laser-multifunction-printer-color/apd/ad442562/printers-ink-toner?gacd=9684992-1418-5761040-439839359-0&dgc=ST&SA360CID=23805252200&gclsrc=aw.ds&gad_source=1&gad_campaignid=23805252200&gbraid=0AAAAADllXQfA3N-XE0KdwXN8cehItqYbH&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeSfT84b-_nplLdlTGfuJwbaZ1lwLGxq8MaphROI2WSdYrEmPC_29V38aAvfYEALw_wcB"
+          "url": "https://www.dell.com/en-us/shop/canon-imageclass-mf662cdw-wired-wireless-laser-multifunction-printer-color/apd/ad442562/printers-ink-toner"
         },
         {
           "name": "Canon",
-          "url": "https://www.usa.canon.com/shop/p/color-imageclass-mf662cdw-multifunction-wireless-laser-printer?gclsrc=aw.ds&gad_source=1&gad_campaignid=16687717827&gbraid=0AAAAADxAOrwWDVqd6lgRzHVngCOxymMBr&gclid=Cj0KCQjw2YDQBhD_ARIsAE1qeScB8ug5wEAWvJYGrScyV-_KnS2PMXOvyhIvJP1yHc9WC-n-rQaPLkEaAuC_EALw_wcB"
+          "url": "https://www.usa.canon.com/shop/p/color-imageclass-mf662cdw-multifunction-wireless-laser-printer"
         },
         {
           "name": "CDW",
           "url": "https://www.cdw.com/product/canon-imageclass-mf662cdw-multifunction-printer-color/8500863"
         },
         {
-          "name": "B&H",
-          "url": "https://www.bhphotovideo.com/c/product/1917892-REG/canon_6928c016_mf662cw_multifunction_wireless_color.html"
+          "name": "Newegg",
+          "url": "https://www.newegg.com/canon-mf662cdw-imageclass/p/1EE-0015-008V3"
+        },
+        {
+          "name": "Walmart",
+          "url": "https://www.walmart.com/ip/Canon-6928C016-Color-Laser-All-in-One-Printer-Duplex-26-PPM/17877603922"
         }
       ]
     },
