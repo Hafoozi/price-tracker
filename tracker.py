@@ -52,6 +52,50 @@ def already_alerted_today(alerted: dict, name: str) -> bool:
 def mark_alerted(alerted: dict, name: str):
     alerted[name] = datetime.now().strftime("%Y-%m-%d")
 
+# ── Notification settings ──────────────────────────────────────────────────────
+def load_notification_settings(buckets: list) -> dict:
+    defaults = {
+        "master_price_drop": True,
+        "master_weekly_summary": True,
+        "master_staleness": True,
+    }
+    for b in buckets:
+        defaults[f"staleness_{b['label']}"] = True
+    if not supabase:
+        return defaults
+    try:
+        result = supabase.table("notification_settings").select("key,enabled").execute()
+        settings = dict(defaults)
+        for row in result.data:
+            if row["key"] in settings:
+                settings[row["key"]] = row["enabled"]
+        return settings
+    except Exception as e:
+        print(f"  [NOTIFY] Could not load settings: {e}")
+        return defaults
+
+def sync_notification_settings(buckets: list):
+    if not supabase:
+        return
+    try:
+        product_keys = {f"staleness_{b['label']}" for b in buckets}
+        master_keys  = {"master_price_drop", "master_weekly_summary", "master_staleness"}
+        all_expected = product_keys | master_keys
+        existing     = {r["key"] for r in supabase.table("notification_settings").select("key").execute().data}
+        missing = all_expected - existing
+        if missing:
+            supabase.table("notification_settings").insert(
+                [{"key": k, "enabled": True} for k in missing]
+            ).execute()
+            print(f"  [NOTIFY] Added {len(missing)} default notification setting(s)")
+        orphaned = [k for k in existing if k.startswith("staleness_") and k not in product_keys]
+        for k in orphaned:
+            supabase.table("notification_settings").delete().eq("key", k).execute()
+        if orphaned:
+            print(f"  [NOTIFY] Removed {len(orphaned)} orphaned notification setting(s)")
+    except Exception as e:
+        print(f"  [NOTIFY] Could not sync notification settings: {e}")
+
 # ── HTTP / Scraping ───────────────────────────────────────────────────────────
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
@@ -512,11 +556,13 @@ def send_weekly_summary(config: dict, buckets: list, current_prices: dict):
 # ── Main ──────────────────────────────────────────────────────────────────────
 def run(weekly: bool = False):
     ensure_csv_header()
-    config  = load_config()
-    buckets = config["buckets"]
-    alerted = load_alerted()
-    alerts  = []
+    config   = load_config()
+    buckets  = config["buckets"]
+    alerted  = load_alerted()
+    alerts   = []
     current_prices = {}
+    sync_notification_settings(buckets)
+    settings = load_notification_settings(buckets)
 
     print(f"\n{'='*55}")
     print(f"  Price Tracker — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -584,37 +630,49 @@ def run(weekly: bool = False):
             time.sleep(2)
 
     if alerts:
-        send_alert(config, alerts)
+        if settings.get("master_price_drop", True):
+            send_alert(config, alerts)
+        else:
+            print("\n  [NOTIFY] Price drop alerts disabled — skipping.")
     else:
         print("\n  No new alerts this run.")
 
     if weekly:
-        send_weekly_summary(config, buckets, current_prices)
+        if settings.get("master_weekly_summary", True):
+            send_weekly_summary(config, buckets, current_prices)
+        else:
+            print("\n  [NOTIFY] Weekly summary disabled — skipping.")
 
     save_alerted(alerted)
 
     # ── Staleness check — alert if any product hasn't logged data in 24h ──
     STALE_HOURS = 24
-    stale = []
+    stale_items = []  # list of (display_str, bucket_label)
     if os.path.exists(PRICE_LOG):
         with open(PRICE_LOG, "r", newline="") as f:
             all_rows = list(csv.DictReader(f))
         cutoff_ts = datetime.now() - timedelta(hours=STALE_HOURS)
-        # Build set of all tracked product names from config
-        tracked = {f"{b['label']} - {r['name']}" for b in buckets for r in b["retailers"]}
-        for name in tracked:
+        # Map item name → bucket label so we can check product-level toggles
+        tracked = {f"{b['label']} - {r['name']}": b['label'] for b in buckets for r in b["retailers"]}
+        for name, label in tracked.items():
             product_rows = [r for r in all_rows if r["name"] == name]
             if not product_rows:
                 # Never had data — persistent scrape failure, not a regression. Skip.
                 continue
+            latest_ts = datetime.strptime(product_rows[-1]["timestamp"], "%Y-%m-%d %H:%M:%S")
+            if latest_ts < cutoff_ts:
+                hours_ago = int((datetime.now() - latest_ts).total_seconds() / 3600)
+                stale_items.append((f"{name} (last seen {hours_ago}h ago)", label))
+    if stale_items:
+        if settings.get("master_staleness", True):
+            filtered = [d for d, lbl in stale_items if settings.get(f"staleness_{lbl}", True)]
+            if filtered:
+                print(f"\n  [STALE] {len(filtered)} product(s) stale — sending alert")
+                send_staleness_alert(config, filtered, STALE_HOURS)
             else:
-                latest_ts = datetime.strptime(product_rows[-1]["timestamp"], "%Y-%m-%d %H:%M:%S")
-                if latest_ts < cutoff_ts:
-                    hours_ago = int((datetime.now() - latest_ts).total_seconds() / 3600)
-                    stale.append(f"{name} (last seen {hours_ago}h ago)")
-    if stale:
-        print(f"\n  [STALE] {len(stale)} product(s) have data older than {STALE_HOURS}h — sending alert")
-        send_staleness_alert(config, stale, STALE_HOURS)
+                print(f"\n  [STALE] {len(stale_items)} stale product(s) suppressed by individual toggles")
+        else:
+            print(f"\n  [STALE] {len(stale_items)} stale product(s) — master staleness alert disabled")
     else:
         print(f"\n  [OK] All products have fresh data (within {STALE_HOURS}h)")
 
