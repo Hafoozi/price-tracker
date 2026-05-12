@@ -6,6 +6,7 @@
   <title>Price Tracker v23</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -201,6 +202,18 @@
     .toast{position:fixed;bottom:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:0.75rem;font-family:var(--mono);color:var(--muted);opacity:0;transition:opacity .2s;z-index:300;pointer-events:none}
     .toast.on{opacity:1}
 
+    /* Notification settings */
+    .notif-section{font-size:0.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;padding:10px 0 5px;border-bottom:1px solid var(--border);margin-bottom:2px}
+    .notif-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;width:100%;max-width:450px;max-height:90vh;overflow-y:auto}
+    .notif-box h2{font-size:0.9rem;color:var(--text);margin-bottom:4px}
+    .notif-box p{font-size:0.76rem;color:var(--muted);margin-bottom:12px;line-height:1.5}
+    .sb-setup{margin:10px 0 14px;padding:12px;background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.25);border-radius:8px}
+    .sb-setup-title{font-size:0.72rem;color:var(--accent);font-weight:500;margin-bottom:8px}
+    .sb-setup label{display:block;font-size:0.66rem;color:var(--muted);margin-bottom:3px;margin-top:8px}
+    .sb-setup label:first-of-type{margin-top:0}
+    .sb-setup input{width:100%;padding:6px 9px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:0.72rem;outline:none;font-family:var(--mono)}
+    .sb-setup input:focus{border-color:var(--accent)}
+
 
     /* ── Desktop: > 767px ── */
     @media(min-width:768px){
@@ -270,6 +283,7 @@
       <div class="desk-only" style="gap:6px;align-items:center">
         <button class="btn btn-sec" id="tog-btn" onclick="smartToggle()">Expand All</button>
         <button class="btn btn-sec" onclick="loadData()">Reload</button>
+        <button class="btn btn-sec" onclick="openNotif()">🔔 Alerts</button>
         <button class="btn btn-pau" onclick="openPause()">Pause</button>
         <button class="btn btn-pri" onclick="openAdd()">+ Add Product</button>
       </div>
@@ -281,6 +295,7 @@
           <div class="mob-dd hidden" id="mob-dd">
             <div class="mitem" id="mob-tog" onclick="smartToggle();closeMobMenu()">Collapse All</div>
             <div class="mitem" onclick="loadData();closeMobMenu()">Reload Data</div>
+            <div class="mitem" onclick="openNotif();closeMobMenu()">Notification Settings</div>
             <div class="mitem" onclick="openPause();closeMobMenu()">Pause Tracking</div>
           </div>
         </div>
@@ -374,6 +389,26 @@
       <label class="sw"><input type="checkbox" id="sw-week" checked onchange="toggleWF(this.checked,true)"/><span class="sl"></span></label>
     </div>
     <div class="pfooter"><button class="btn btn-sec" onclick="closePause()">Close</button></div>
+  </div>
+</div>
+
+<!-- Notification Settings -->
+<div class="overlay" id="notif-modal">
+  <div class="notif-box">
+    <h2>Notification Settings</h2>
+    <p>Control which email alerts are sent.</p>
+    <div class="sb-setup" id="notif-setup" style="display:none">
+      <div class="sb-setup-title">One-time Supabase setup</div>
+      <label>Project URL</label>
+      <input id="sb-url-inp" type="text" placeholder="https://xxxx.supabase.co"/>
+      <label>Anon Key</label>
+      <input id="sb-key-inp" type="password" placeholder="eyJ..."/>
+      <div style="margin-top:10px">
+        <button class="btn btn-pri" style="font-size:0.72rem;padding:6px 12px" onclick="saveSbCreds()">Connect</button>
+      </div>
+    </div>
+    <div id="notif-rows"></div>
+    <div class="pfooter"><button class="btn btn-sec" onclick="closeNotif()">Close</button></div>
   </div>
 </div>
 
@@ -936,7 +971,118 @@ function changeTf(btn,idx,tf){
   drawChart(cfg.buckets[idx],idx,tf);
 }
 
+// ── Supabase client ───────────────────────────────────────────────────────────
+let sbClient = null;
+function initSbClient() {
+  const url = localStorage.getItem('sb_url');
+  const key = localStorage.getItem('sb_anon_key');
+  if (url && key && window.supabase) {
+    sbClient = window.supabase.createClient(url, key);
+  }
+  return sbClient;
+}
+function saveSbCreds() {
+  const url = document.getElementById('sb-url-inp').value.trim();
+  const key = document.getElementById('sb-key-inp').value.trim();
+  if (!url || !key) { showToast('Enter both URL and key.'); return; }
+  localStorage.setItem('sb_url', url);
+  localStorage.setItem('sb_anon_key', key);
+  initSbClient();
+  document.getElementById('notif-setup').style.display = 'none';
+  loadNotifSettings();
+}
+
+// ── Notification settings ─────────────────────────────────────────────────────
+function openNotif() {
+  document.getElementById('notif-modal').classList.add('open');
+  initSbClient();
+  if (!sbClient) {
+    document.getElementById('notif-setup').style.display = 'block';
+    document.getElementById('notif-rows').innerHTML = '';
+  } else {
+    document.getElementById('notif-setup').style.display = 'none';
+    loadNotifSettings();
+  }
+}
+function closeNotif() { document.getElementById('notif-modal').classList.remove('open'); }
+
+async function loadNotifSettings() {
+  const container = document.getElementById('notif-rows');
+  container.innerHTML = '<div style="padding:16px 0;text-align:center;color:var(--muted);font-size:0.74rem;font-family:var(--mono)">Loading...</div>';
+  let settings = {};
+  try {
+    const { data, error } = await sbClient.from('notification_settings').select('key,enabled');
+    if (error) throw error;
+    (data || []).forEach(r => { settings[r.key] = r.enabled; });
+  } catch(e) {
+    container.innerHTML = `<div style="padding:12px 0;color:var(--red);font-size:0.75rem">Error: ${e.message}</div>`;
+    return;
+  }
+  const get = key => settings[key] !== false;
+  const productLabels = (cfg?.buckets || []).map(b => b.label);
+  let html = `
+    <div class="notif-section">Master Controls</div>
+    ${notifRow('master_price_drop',    'Price Drop Alerts',    'Sent when any tracked item drops in price',    get('master_price_drop'),    false)}
+    ${notifRow('master_staleness',     'Staleness Alerts',     'Sent when a product hasn\'t updated in 24h+',  get('master_staleness'),     true)}
+    ${notifRow('master_weekly_summary','Weekly Summary',        'Sent every Sunday with a full price overview', get('master_weekly_summary'), false)}
+    <div class="notif-section" style="margin-top:6px">Per Product — Staleness</div>
+    ${productLabels.map(label => notifRow(`staleness_${label}`, label, '', get(`staleness_${label}`), false)).join('')}
+  `;
+  container.innerHTML = html;
+}
+
+function notifRow(key, label, sub, checked, isMaster) {
+  const handler = isMaster
+    ? `onMasterStaleness(this.checked)`
+    : `saveNotifSetting('${CSS.escape(key)}',this.checked)`;
+  return `
+    <div class="prow">
+      <div>
+        <div class="plbl">${label}</div>
+        ${sub ? `<div class="psub">${sub}</div>` : ''}
+      </div>
+      <label class="sw">
+        <input type="checkbox" data-key="${key}" ${checked ? 'checked' : ''} onchange="${handler}"/>
+        <span class="sl"></span>
+      </label>
+    </div>`;
+}
+
+async function saveNotifSetting(key, enabled, silent=false) {
+  if (!sbClient) return;
+  try {
+    const { error } = await sbClient.from('notification_settings').upsert({ key, enabled });
+    if (error) throw error;
+    if (!silent) showToast(enabled ? 'Enabled ✓' : 'Disabled ✓');
+  } catch(e) {
+    showToast('Error saving — check console');
+    console.error('saveNotifSetting:', e);
+  }
+}
+
+async function onMasterStaleness(enabled) {
+  if (!sbClient || !cfg) return;
+  const productLabels = cfg.buckets.map(b => b.label);
+  const rows = [
+    { key: 'master_staleness', enabled },
+    ...productLabels.map(label => ({ key: `staleness_${label}`, enabled }))
+  ];
+  try {
+    const { error } = await sbClient.from('notification_settings').upsert(rows);
+    if (error) throw error;
+    productLabels.forEach(label => {
+      const inp = document.querySelector(`input[data-key="staleness_${label}"]`);
+      if (inp) inp.checked = enabled;
+    });
+    showToast(enabled ? 'All staleness alerts enabled ✓' : 'All staleness alerts disabled ✓');
+  } catch(e) {
+    showToast('Error saving — check console');
+    console.error('onMasterStaleness:', e);
+  }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
+initSbClient();
 loadData();
 window.addEventListener('resize',()=>{if(!cfg)return;cfg.buckets.forEach((b,i)=>{if(cState[i]!==false)drawChart(b,i,getTf(i));});});
 </script>
