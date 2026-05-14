@@ -6,31 +6,6 @@
   },
   "buckets": [
     {
-      "label": "Cannon MF662Cdw",
-      "retailers": [
-        {
-          "name": "Dell",
-          "url": "https://www.dell.com/en-us/shop/canon-imageclass-mf662cdw-wired-wireless-laser-multifunction-printer-color/apd/ad442562/printers-ink-toner"
-        },
-        {
-          "name": "Canon",
-          "url": "https://www.usa.canon.com/shop/p/color-imageclass-mf662cdw-multifunction-wireless-laser-printer"
-        },
-        {
-          "name": "CDW",
-          "url": "https://www.cdw.com/product/canon-imageclass-mf662cdw-multifunction-printer-color/8500863"
-        },
-        {
-          "name": "Newegg",
-          "url": "https://www.newegg.com/canon-mf662cdw-imageclass/p/1EE-0015-008V3"
-        },
-        {
-          "name": "Walmart",
-          "url": "https://www.walmart.com/ip/Canon-6928C016-Color-Laser-All-in-One-Printer-Duplex-26-PPM/17877603922"
-        }
-      ]
-    },
-    {
       "label": "Brake Free Tail Light",
       "retailers": [
         {
