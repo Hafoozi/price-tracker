@@ -6,6 +6,23 @@
   },
   "buckets": [
     {
+      "label": "Lelit Bianca Espresso Machine",
+      "retailers": [
+        {
+          "name": "CliveCoffee",
+          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
+        },
+        {
+          "name": "SurLaTable",
+          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
+        },
+        {
+          "name": "CoffeeMachineDepot",
+          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
+        }
+      ]
+    },
+    {
       "label": "Turin DF83 Gen 2 Grinder",
       "retailers": [
         {
@@ -32,23 +49,6 @@
         {
           "name": "BUSlink",
           "url": "https://buslinkbuy.com/product/hard-drive-expansion-for-tp-link-tapo-h500-smart-homebase-seamless-storage-upgrade-for-security-video-recordings-plug-play-installation/"
-        }
-      ]
-    },
-    {
-      "label": "Lelit Bianca Espresso Machine",
-      "retailers": [
-        {
-          "name": "CliveCoffee",
-          "url": "https://clivecoffee.com/products/lelit-bianca-dual-boiler-espresso-machine?variant=31233815117912"
-        },
-        {
-          "name": "SurLaTable",
-          "url": "https://www.surlatable.com/product/lelit-bianca-espresso-machine/9645458"
-        },
-        {
-          "name": "CoffeeMachineDepot",
-          "url": "https://www.coffeemachinedepot.com/products/lelit-bianca-v3-1-group-home-espresso-machine-dual-boiler-chrome?variant=46467589374197"
         }
       ]
     }
