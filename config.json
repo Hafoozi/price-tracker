@@ -6,6 +6,15 @@
   },
   "buckets": [
     {
+      "label": "BUSlink 2Tb",
+      "retailers": [
+        {
+          "name": "BUSlink",
+          "url": "https://buslinkbuy.com/product/hard-drive-expansion-for-tp-link-tapo-h500-smart-homebase-seamless-storage-upgrade-for-security-video-recordings-plug-play-installation/"
+        }
+      ]
+    },
+    {
       "label": "Lelit Bianca Espresso Machine",
       "retailers": [
         {
@@ -40,15 +49,6 @@
         {
           "name": "JSA Coffee",
           "url": "https://jsacoffee.com/products/turin-df83-v3-single-dose-grinder?variant=50769216143652"
-        }
-      ]
-    },
-    {
-      "label": "BUSlink 2Tb",
-      "retailers": [
-        {
-          "name": "BUSlink",
-          "url": "https://buslinkbuy.com/product/hard-drive-expansion-for-tp-link-tapo-h500-smart-homebase-seamless-storage-upgrade-for-security-video-recordings-plug-play-installation/"
         }
       ]
     }
